@@ -9,7 +9,7 @@ One other cool thing was that every single application automatically came with a
 
 Much of the basics have been open sourced via the [Abseil](https://github.com/abseil) project.
 
-However, when I first started writing Pythong projects for home, I wanted something similar, and the initial file, [app.py](https://github.com/nexushoratio/python/commit/ccb8792a059081e58b8af8f177466f3ada9d2d4d) was born.  (At the time, Google's Python version used that same name.)
+However, when I first started writing Python projects for home, I wanted something similar, and the initial file, [app.py](https://github.com/nexushoratio/python/commit/ccb8792a059081e58b8af8f177466f3ada9d2d4d) was born.  (At the time, Google's Python version used that same name.)
 
 Projects like [Click](https://palletsprojects.com/p/click/) did not exist yet, and [argparse](https://docs.python.org/3/library/argparse.html) was still the new hotness, so that became the basis (rather than something like getopt).
 
