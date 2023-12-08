@@ -5,7 +5,7 @@ To use this module, simply define a 'main' function with a single
 module:
 
 if __name__ == '__main__':
-  app.run(main)
+    app.run(main)
 
 
 The main function is expected to take an argparse.ArgumentParser object
