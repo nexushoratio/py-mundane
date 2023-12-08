@@ -56,17 +56,18 @@ def run(func):
     # argv[0] -> argv[0].$HOST.$USER.$DATETIME.$PID
 
     progname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-    short_filename = '%s.log' % progname
+    now = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 
-    long_filename = '%s.%s.%s.%s.%d' % (
-        short_filename, socket.gethostname(), pwd.getpwuid(os.getuid())[0],
-        datetime.datetime.now().strftime('%Y%m%d-%H%M%S'), os.getpid())
+    short_filename = f'{progname}.log'
+    long_filename = (f'{short_filename}.{socket.gethostname()}'
+                     f'.{pwd.getpwuid(os.getuid())[0]}.{now}.{os.getpid()}')
 
     long_pathname = os.path.join(tempfile.gettempdir(), long_filename)
     short_pathname = os.path.join(tempfile.gettempdir(), short_filename)
 
-    log_format = ('%(levelname).1s%(asctime)s: %(filename)s:%(lineno)d'
-                  '(%(funcName)s)] {%(name)s} %(message)s')
+    log_format = (
+        '%(levelname).1s%(asctime)s: %(filename)s:%(lineno)d'
+        '(%(funcName)s)] {%(name)s} %(message)s')
     logging.basicConfig(
         level=logging.INFO, format=log_format, filename=long_pathname)
     logging.info('Started.')
