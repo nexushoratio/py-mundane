@@ -36,12 +36,13 @@ class LogAction(argparse.Action):  # pylint: disable=too-few-public-methods
 def run(func):
     """Main entry point for application.
 
-  Args:
-    func: callback function - Signature should be (argparse.ArgumentParser)
+    Args:
+        func: callback function - Signature should be
+            typing.Callable[[argparse.ArgumentParser], int].
 
-  Returns:
-    Return value of func
-  """
+    Returns:
+        Return value of func.
+    """
     parser = argparse.ArgumentParser(add_help=False)
     group = parser.add_argument_group('Global flags')
     group.add_argument('-h', '--help', action='help')
@@ -59,8 +60,9 @@ def run(func):
     now = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 
     short_filename = f'{progname}.log'
-    long_filename = (f'{short_filename}.{socket.gethostname()}'
-                     f'.{pwd.getpwuid(os.getuid())[0]}.{now}.{os.getpid()}')
+    long_filename = (
+        f'{short_filename}.{socket.gethostname()}'
+        f'.{pwd.getpwuid(os.getuid())[0]}.{now}.{os.getpid()}')
 
     long_pathname = os.path.join(tempfile.gettempdir(), long_filename)
     short_pathname = os.path.join(tempfile.gettempdir(), short_filename)
