@@ -6,6 +6,9 @@ import unittest
 
 from nexushoratio import app
 
+from nexushoratio.test_data import flags_one
+from nexushoratio.test_data import flags_two
+
 
 class ArgparseAppParsingTest(unittest.TestCase):
 
@@ -66,6 +69,26 @@ class ArgparseAppParsingTest(unittest.TestCase):
             """)
         self.assertRegex(stderr.getvalue(), expected)
         self.assertEqual(result.exception.code, 2)
+
+    def test_global_flags(self):
+        my_app = app.ArgparseApp()
+        stdout = io.StringIO()
+
+        my_app.register_global_flags([flags_one, flags_two])
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(stdout):
+            my_app.parser.parse_args(['-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\] \[--foo\]
+
+        Global flags:
+          -h, --help
+          --foo *Enable foo-ing.
+        """)
+        self.assertRegex(stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
 
 
 if __name__ == '__main__':  # pragma: no cover
