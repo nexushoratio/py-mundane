@@ -30,7 +30,12 @@ import humanize
 class LogAction(argparse.Action):  # pylint: disable=too-few-public-methods
     """Callback action to tweak log settings during flag parsing."""
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(
+            self,
+            parser,
+            namespace,
+            values,
+            option_string=None):  # pragma: no cover
         numeric_level = getattr(logging, values.upper())
         logging.getLogger().setLevel(numeric_level)
 
@@ -246,7 +251,7 @@ class ArgparseApp:
         return ret
 
 
-def run(func):
+def run(func):  # pragma: no cover
     """Main entry point for application.
 
     Args:
