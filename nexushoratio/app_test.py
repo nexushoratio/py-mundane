@@ -52,5 +52,5 @@ class ArgparseAppParsingTest(unittest.TestCase):
         self.assertEqual(result.exception.code, 2)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()
