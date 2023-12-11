@@ -1,5 +1,6 @@
 """Tests for app.py"""
 import contextlib
+import inspect
 import io
 import unittest
 
@@ -25,7 +26,13 @@ class ArgparseAppParsingTest(unittest.TestCase):
                 SystemExit) as result, contextlib.redirect_stdout(stdout):
             my_app.parser.parse_args(['-h'])
 
-        self.assertRegex(stdout.getvalue(), r'Global flags:\n.*-h, --help')
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\]
+
+        Global flags:
+          -h, --help
+        """)
+        self.assertRegex(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
     def test_dash_dash_help(self):
@@ -36,7 +43,13 @@ class ArgparseAppParsingTest(unittest.TestCase):
                 SystemExit) as result, contextlib.redirect_stdout(stdout):
             my_app.parser.parse_args(['--help'])
 
-        self.assertRegex(stdout.getvalue(), r'Global flags:\n.*-h, --help')
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\]
+
+        Global flags:
+          -h, --help
+        """)
+        self.assertRegex(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
     def test_unknown_arg(self):
@@ -47,8 +60,11 @@ class ArgparseAppParsingTest(unittest.TestCase):
                 SystemExit) as result, contextlib.redirect_stderr(stderr):
             my_app.parser.parse_args(['-k'])
 
-        self.assertRegex(
-            stderr.getvalue(), r'error: unrecognized arguments: -k')
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\]
+            .*error: unrecognized arguments: -k
+            """)
+        self.assertRegex(stderr.getvalue(), expected)
         self.assertEqual(result.exception.code, 2)
 
 
