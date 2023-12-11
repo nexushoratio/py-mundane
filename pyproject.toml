@@ -26,3 +26,7 @@ build-backend = 'setuptools.build_meta'
 
 [tool.setuptools_scm]
 
+[tool.coverage.run]
+branch = true
+command_line = '-m unittest discover -p *_test.py'
+source = ['.']
