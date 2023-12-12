@@ -1,0 +1,2 @@
+global-exclude *_test.py
+prune */test_data
