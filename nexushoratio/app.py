@@ -121,6 +121,12 @@ class ArgparseApp:
         self._global_flags = self._parser.add_argument_group(
             self.GLOBAL_FLAGS)
         self._global_flags.add_argument('-h', '--help', action='help')
+        self._shared_parsers = dict()
+
+    @property
+    def argparse_api(self) -> types.ModuleType:
+        """Return argparse as a convenience."""
+        return argparse
 
     @property
     def global_flags(self):
@@ -128,9 +134,28 @@ class ArgparseApp:
         return self._global_flags
 
     @property
-    def parser(self):
-        """An argparse.ArgumentParser() instance."""
+    def parser(self) -> argparse.ArgumentParser:
+        """The main parser for this class."""
         return self._parser
+
+    def new_shared_parser(self, name: str) -> argparse.ArgumentParser | None:
+        """Create and register a new parser iff it does not already exist.
+
+        Args:
+            name: The key to find this parser.
+
+        Returns:
+            The parser, only if a new one is created.
+        """
+        if name not in self._shared_parsers:
+            self._shared_parsers[name] = argparse.ArgumentParser(
+                add_help=False)
+            return self._shared_parsers[name]
+        return None
+
+    def get_shared_parser(self, name: str) -> argparse.ArgumentParser | None:
+        """Returns a parser iff it already exists, else None ."""
+        return self._shared_parsers.get(name)
 
     def _register_module_stuff(
             self, func_name: str, modules: list[types.ModuleType]):

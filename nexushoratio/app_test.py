@@ -70,6 +70,9 @@ class ArgparseAppParsingTest(unittest.TestCase):
         self.assertRegex(stderr.getvalue(), expected)
         self.assertEqual(result.exception.code, 2)
 
+
+class ArgparseAppRegisterFlagsTest(unittest.TestCase):
+
     def test_global_flags(self):
         my_app = app.ArgparseApp()
         stdout = io.StringIO()
@@ -89,6 +92,18 @@ class ArgparseAppParsingTest(unittest.TestCase):
         """)
         self.assertRegex(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
+
+    def test_shared_flags(self):
+        my_app = app.ArgparseApp()
+        stdout = io.StringIO()
+
+        my_app.register_shared_flags([flags_one, flags_two])
+
+        self.assertIn('foo', my_app._shared_parsers)  # pylint: disable=protected-access
+
+        self.assertRaisesRegex(
+            Exception, 'called again', my_app.register_shared_flags,
+            [flags_one, flags_two])
 
 
 if __name__ == '__main__':  # pragma: no cover
