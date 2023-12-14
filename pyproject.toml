@@ -30,3 +30,17 @@ build-backend = 'setuptools.build_meta'
 branch = true
 command_line = '-m unittest discover -p *_test.py'
 source = ['.']
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py3
+isolated_build = True
+
+[testenv]
+sitepackages = True
+install_command = pip install --no-deps {opts} {packages}
+commands =
+    python -m coverage run
+    python -m coverage report
+"""
