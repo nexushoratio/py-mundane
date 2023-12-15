@@ -2,6 +2,7 @@
 import contextlib
 import inspect
 import io
+import os
 import unittest
 
 from nexushoratio import app
@@ -11,6 +12,10 @@ from nexushoratio.test_data import flags_two
 
 
 class ArgparseAppParsingTest(unittest.TestCase):
+
+    def setUp(self):
+        os.environ['COLUMNS'] = '80'
+        os.environ['ROWS'] = '24'
 
     def test_no_args(self):
         my_app = app.ArgparseApp()
@@ -72,6 +77,10 @@ class ArgparseAppParsingTest(unittest.TestCase):
 
 
 class ArgparseAppRegisterFlagsTest(unittest.TestCase):
+
+    def setUp(self):
+        os.environ['COLUMNS'] = '80'
+        os.environ['ROWS'] = '24'
 
     def test_global_flags(self):
         my_app = app.ArgparseApp()
