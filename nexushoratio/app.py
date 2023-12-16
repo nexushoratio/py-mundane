@@ -14,13 +14,16 @@ and use that as a parents= parameter to another instance.
 
 import argparse
 import datetime
+import inspect
 import logging
 import os
 import pwd
 import socket
 import resource
+import shutil
 import sys
 import tempfile
+import textwrap
 import types
 import typing
 
@@ -122,6 +125,8 @@ class ArgparseApp:
             self.GLOBAL_FLAGS)
         self._global_flags.add_argument('-h', '--help', action='help')
         self._shared_parsers = dict()
+        self._subparser = None
+        self._width = None
 
     @property
     def argparse_api(self) -> types.ModuleType:
@@ -137,6 +142,25 @@ class ArgparseApp:
     def parser(self) -> argparse.ArgumentParser:
         """The main parser for this class."""
         return self._parser
+
+    @property
+    def subparser(self) -> argparse.ArgumentParser:
+        """The command subparser for this class."""
+        if not self._subparser:
+            self._subparser = self._parser.add_subparsers(
+                title='Commands',
+                dest='name',
+                metavar='<command>',
+                help='<command description>',
+                description='For more details: %(prog)s <command> --help')
+        return self._subparser
+
+    @property
+    def width(self):
+        """Width of the current terminal."""
+        if not self._width:
+            self._width = shutil.get_terminal_size().columns
+        return self._width
 
     def new_shared_parser(self, name: str) -> argparse.ArgumentParser | None:
         """Create and register a new parser iff it does not already exist.
@@ -235,8 +259,8 @@ class ArgparseApp:
         self._register_module_stuff('nh_commands', modules)
 
     def register_command(
-        self, func: typing.Callable[argparse.Namespace, int]
-    ) -> argparse.ArgumentParser:
+            self, func: typing.Callable[argparse.Namespace, int],
+            **kwargs) -> argparse.ArgumentParser:
         """Register a specific command.
 
         This method is called by a module's nh_commands() function.  It will
@@ -251,12 +275,40 @@ class ArgparseApp:
 
         Args:
             func: The function to register.
+            kwargs: Passed directly to add_parser()
 
         Returns:
             The result of add_parser() filled with information extracted from
             the function.
         """
-        print(dir(func))
+        docstring = inspect.getdoc(func)
+        name = func.__name__.replace('_', '-')
+        description_parts = list()
+        summary = None
+        body = None
+        if docstring:
+            split = docstring.split('\n', 1)
+            summary = split.pop(0).strip()
+            description_parts.append(summary)
+            if split:
+                body = '\n\n'.join(
+                    textwrap.fill(x, width=self.width)
+                    for x in split[-1].strip().split('\n\n'))
+                description_parts.append(body)
+
+        description = '\n\n'.join(description_parts)
+
+        parser_args = {
+            'formatter_class': argparse.RawDescriptionHelpFormatter,
+            'help': summary,
+            'description': description,
+        }
+        parser_args.update(kwargs)
+
+        parser = self.subparser.add_parser(name, **parser_args)
+        parser.set_defaults(func=func)
+
+        return parser
 
     def run(self) -> int:
         """Execute the selected function."""

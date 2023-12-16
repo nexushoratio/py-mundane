@@ -79,7 +79,7 @@ class ArgparseAppParsingTest(unittest.TestCase):
 class ArgparseAppRegisterFlagsTest(unittest.TestCase):
 
     def setUp(self):
-        os.environ['COLUMNS'] = '80'
+        os.environ['COLUMNS'] = '60'
         os.environ['ROWS'] = '24'
 
     def test_global_flags(self):
@@ -113,6 +113,171 @@ class ArgparseAppRegisterFlagsTest(unittest.TestCase):
         self.assertRaisesRegex(
             Exception, 'called again', my_app.register_shared_flags,
             [flags_one, flags_two])
+
+
+class ArgparseAppRegisterCommandsTest(unittest.TestCase):
+
+    def setUp(self):
+        os.environ['COLUMNS'] = '60'
+        os.environ['ROWS'] = '24'
+
+        self.my_app = app.ArgparseApp()
+        self.stdout = io.StringIO()
+
+        self.my_app.register_shared_flags([flags_one, flags_two])
+        self.my_app.register_commands([flags_one, flags_two])
+
+    def test_dash_h_commands(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.my_app.parser.parse_args(['-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\] <command> ...
+
+            Global flags:
+              -h, --help
+
+            Commands:
+              For more details: python -m unittest <command> --help
+
+              <command>            <command description>
+                generate-report
+                put-on-hat
+                remove-shoes       Shoes have custom help.
+                ingest-new-material
+                                   Take in new material.
+                process            Process random data.
+                dance              Like no one is watching.
+
+            """)
+
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+    def test_generate_report_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.my_app.parser.parse_args(['generate-report', '-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage: .* generate-report \[-h\]
+
+            options:
+              -h, --help  show this help message and exit
+            """)
+
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+    def test_put_on_hat_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.my_app.parser.parse_args(['put-on-hat', '-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage: .* put-on-hat \[-h\] -x XYZZY
+            [ ]* \[-k \| --keep \| --no-keep\]
+
+            options:
+              -h, --help            show this help message and exit
+              -x XYZZY, --xyzzy XYZZY
+                                    The xyzzy input.
+              -k, --keep, --no-keep
+                                    Keep intermediates.
+            """)
+
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+    def test_remove_shoes_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.my_app.parser.parse_args(['remove-shoes', '-h'])
+
+        # Oops, implementer forgot to run through textwrap or equiv
+        expected = inspect.cleandoc(
+            r"""usage: .* remove-shoes \[-h\]
+
+            This is also a custom description.
+
+                Built by hand.
+
+            options:
+              -h, --help  show this help message and exit
+            """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+    def test_ingest_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.my_app.parser.parse_args(['ingest-new-material', '-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage: .* ingest-new-material
+            [ ]* \[-h\] -f FILENAME
+
+            Take in new material.
+
+            Read the material and do something useful with it.
+
+            This is a second paragraph that has more details on what is
+            going on in this command.  Including long sentences that
+            wrap.
+
+            options:
+              -h, --help            show this help message and exit
+              -f FILENAME, --filename FILENAME
+                                    Filename to ingest.
+            """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+    def test_process_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.my_app.parser.parse_args(['process', '-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage: .* process \[-h\]
+
+            Process random data.
+
+            options:
+              -h, --help  show this help message and exit
+            """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+    def test_dance_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.my_app.parser.parse_args(['dance', '-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage: .* dance \[-h\]
+            [ ]* \[-n \| --now \| --no-now\]
+
+            Like no one is watching.
+
+            Second line here.
+
+            Rest of the content.
+
+            options:
+              -h, --help           show this help message and exit
+              -n, --now, --no-now  Now or later.
+            """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
 
 
 if __name__ == '__main__':  # pragma: no cover
