@@ -35,11 +35,11 @@ source = ['.']
 legacy_tox_ini = """
 [tox]
 envlist = py3
+skipsdist = True
 isolated_build = True
 
 [testenv]
 sitepackages = True
-install_command = pip install --no-deps {opts} {packages}
 commands =
     python -m coverage run
     python -m coverage report
