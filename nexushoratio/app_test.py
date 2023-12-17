@@ -274,10 +274,55 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
 
             options:
               -h, --help           show this help message and exit
-              -n, --now, --no-now  Now or later.
+              -n, --now, --no-now  Now or later. \(default: False\)
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
+
+    def test_put_on_hat_foo(self):
+        args = self.my_app.parser.parse_args(['put-on-hat', '--xyzzy', 'foo'])
+
+        self.assertEqual(
+            vars(args), {
+                'name': 'put-on-hat',
+                'func': flags_one.put_on_hat,
+                'xyzzy': 'foo',
+                'keep': None,
+            })
+
+    def test_put_on_hat_bar(self):
+        args = self.my_app.parser.parse_args(
+            ['put-on-hat', '--xyzzy', 'bar', '-k'])
+
+        self.assertEqual(
+            vars(args), {
+                'name': 'put-on-hat',
+                'func': flags_one.put_on_hat,
+                'xyzzy': 'bar',
+                'keep': True,
+            })
+
+    def test_put_on_hat_bar_no_keep(self):
+        args = self.my_app.parser.parse_args(
+            ['put-on-hat', '--xyzzy', 'bar', '--no-keep'])
+
+        self.assertEqual(
+            vars(args), {
+                'name': 'put-on-hat',
+                'func': flags_one.put_on_hat,
+                'xyzzy': 'bar',
+                'keep': False,
+            })
+
+    def test_dance(self):
+        args = self.my_app.parser.parse_args(['dance'])
+
+        self.assertEqual(
+            vars(args), {
+                'name': 'dance',
+                'func': flags_two.dance,
+                'now': False
+            })
 
 
 if __name__ == '__main__':  # pragma: no cover

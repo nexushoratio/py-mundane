@@ -36,8 +36,9 @@ def nh_commands(ctx: 'nexushoratio.ArgparserApp'):
     parser.add_argument(
         '-n',
         '--now',
+        default=False,
         action=ctx.argparse_api.BooleanOptionalAction,
-        help='Now or later.')
+        help='Now or later. (default: %(default)s)')
 
 
 def ingest_new_material(args: 'argparse.Namespace') -> int:
