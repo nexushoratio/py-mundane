@@ -89,7 +89,7 @@ class ArgparseApp:
     fine-tuned as you move along.
 
     def main() -> int:
-        my_app = nexushoration.ArgparseApp()
+        my_app = nexushoratio.ArgparseApp()
         my_app.register_global_flags([module1, module2, ..., moduleN])
         my_app.register_shared_flags([module1, module2, ..., moduleN])
         my_app.register_commands([module1, module2, ..., moduleN])
@@ -239,7 +239,7 @@ class ArgparseApp:
     def register_commands(self, modules: typing.Iterable[types.ModuleType]):
         """Register commands by calling 'MODULE.nh_commands()'.
 
-        Some applications may with to implement subcommands where each command
+        Some applications may wish to implement subcommands where each command
         may have its own set of flags.  This method facilitates this by
         providing an entry point for registering these commands.
 
