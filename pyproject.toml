@@ -39,6 +39,7 @@ skipsdist = True
 isolated_build = True
 
 [testenv]
+passenv = PYTHON*
 sitepackages = True
 commands =
     python -m coverage run
