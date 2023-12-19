@@ -17,8 +17,8 @@ dependencies = [
 dynamic = ['version']
 
 [project.urls]
-Repository = 'https://github.com/nexushoratio/python'
-Issues = 'https://github.com/nexushoratio/python/issues'
+Repository = 'https://github.com/nexushoratio/py-mundane'
+Issues = 'https://github.com/nexushoratio/py-mundane/issues'
 
 [build-system]
 requires = ['setuptools', 'setuptools-scm']
