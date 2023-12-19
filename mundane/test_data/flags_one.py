@@ -1,12 +1,12 @@
 """Yes global flag, no shared flags, yes commands."""
 
 
-def nh_global_flags(an_app):
+def mundane_global_flags(an_app: 'mundane.ArgparserApp'):
     an_app.global_flags.add_argument(
         '--foo', action='store_true', help='Enable foo-ing.')
 
 
-def nh_commands(an_app: 'mundane.ArgparserApp'):
+def mundane_commands(an_app: 'mundane.ArgparserApp'):
     """Register all module commands."""
     parser = an_app.register_command(generate_report)
 

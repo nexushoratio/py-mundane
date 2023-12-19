@@ -1,7 +1,7 @@
 """No global flags, yes shared flags, yes commands."""
 
 
-def nh_shared_flags(ctx: 'mundane.ArgparserApp'):
+def mundane_shared_flags(ctx: 'mundane.ArgparserApp'):
     """Register shared flags."""
     parser = ctx.new_shared_parser('foo')
     if parser:
@@ -20,7 +20,7 @@ def nh_shared_flags(ctx: 'mundane.ArgparserApp'):
         raise Exception('called again')  # pylint: disable=broad-exception-raised
 
 
-def nh_commands(ctx: 'mundane.ArgparserApp'):
+def mundane_commands(ctx: 'mundane.ArgparserApp'):
     """Register all module commands."""
     parser = ctx.register_command(ingest_new_material)
     parser.add_argument(

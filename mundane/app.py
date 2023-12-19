@@ -191,81 +191,84 @@ class ArgparseApp:
 
     def register_global_flags(
             self, modules: typing.Iterable[types.ModuleType]):
-        """Register global flags by calling 'MODULE.nh_global_flags()'.
+        """Register global flags by calling 'MODULE.mundane_global_flags()'.
 
         Global flags are typically used for setting things like verbosity,
         databases, or other things shared between commands.
 
         Each module is checked in turn for the existence of the function
-        'nh_global_flags'.  If it exists, it is called with a single argument:
-        this instance.
+        'mundane_global_flags'.  If it exists, it is called with a single
+        argument: this instance.
 
-        Of usual interest to 'nh_global_flags' is the property 'global_flags',
-        which was created by ArgumentParser().add_argument_group().  The
-        function should invoke the 'add_argument()' method as normal with
-        argparse based code.
+        Of usual interest to 'mundane_global_flags' is the property
+        'global_flags', which was created by
+        ArgumentParser().add_argument_group().  The function should invoke the
+        'add_argument()' method as normal with argparse based code.
 
         If flag order matters, then use an ordered iterable (e.g., list,
         tuple).
 
         Args:
             modules: The modules to process.
+
         """
-        self._register_module_stuff('nh_global_flags', modules)
+        self._register_module_stuff('mundane_global_flags', modules)
 
     def register_shared_flags(
             self, modules: typing.Iterable[types.ModuleType]):
-        """Register shared flags by calling 'MODULE.nh_shared_flags()'.
+        """Register shared flags by calling 'MODULE.mundane_shared_flags()'.
 
         When using applications with commands, sometimes is nice to use the
         same flags in multiple locations, for consistency in things naming,
-        constraints, and help strings.  When the nh_commands() method is
+        constraints, and help strings.  When the mundane_commands() method is
         executed, they may use any registered shared flags as a parent for the
         subparser they will create.
 
         Each module is checked in turn for the existence of the function
-        'nh_shared_flags'.  If it exists, it is called with a single argument:
-        this instance.
+        'mundane_shared_flags'.  If it exists, it is called with a single
+        argument: this instance.
 
-        Of usual interest to 'nh_shared_flags' are the properties 'argparse'
-        which is just module of the same name, and 'shared_flags', which is a
-        mapping of strings to ArgumentParser.
+        Of usual interest to 'mundane_shared_flags' are the properties
+        'argparse' which is just module of the same name, and 'shared_flags',
+        which is a mapping of strings to ArgumentParser.
 
         Args:
             modules: The modules to process.
-       """
-        self._register_module_stuff('nh_shared_flags', modules)
+
+        """
+        self._register_module_stuff('mundane_shared_flags', modules)
 
     def register_commands(self, modules: typing.Iterable[types.ModuleType]):
-        """Register commands by calling 'MODULE.nh_commands()'.
+        """Register commands by calling 'MODULE.mundane_commands()'.
 
         Some applications may wish to implement subcommands where each command
         may have its own set of flags.  This method facilitates this by
         providing an entry point for registering these commands.
 
         Each module is checked in turn for the existence of the function
-        'nh_commands'.  If it exists, it is called with a single argument:
-        this instance.
+        'mundane_commands'.  If it exists, it is called with a single
+        argument: this instance.
 
-        Of usual interest to 'nh_commands' are the property 'shared_flags' and
-        method 'register_command'.  For each function the module wants to
-        register as a command, it will call the register_command that will
-        include useful defaults and return a parser that can then add flags as
-        expected using the add_argument() method.
+        Of usual interest to 'mundane_commands' are the property
+        'shared_flags' and method 'register_command'.  For each function the
+        module wants to register as a command, it will call the
+        register_command that will include useful defaults and return a parser
+        that can then add flags as expected using the add_argument() method.
 
         Args:
             modules: The modules to process.
+
         """
-        self._register_module_stuff('nh_commands', modules)
+        self._register_module_stuff('mundane_commands', modules)
 
     def register_command(
             self, func: typing.Callable[argparse.Namespace, int],
             **kwargs) -> argparse.ArgumentParser:
         """Register a specific command.
 
-        This method is called by a module's nh_commands() function.  It will
-        register the supplied function as a new command using the name of the
-        function and help text extracted from the functions docstring.
+        This method is called by a module's mundane_commands() function.  It
+        will register the supplied function as a new command using the name of
+        the function and help text extracted from the functions docstring.
 
         Underscores in the function name are turned into a minus symbol for
         easier use on the command line.
@@ -280,6 +283,7 @@ class ArgparseApp:
         Returns:
             The result of add_parser() filled with information extracted from
             the function.
+
         """
         docstring = inspect.getdoc(func)
         name = func.__name__.replace('_', '-')
