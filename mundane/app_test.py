@@ -5,10 +5,10 @@ import io
 import os
 import unittest
 
-from nexushoratio import app
+from mundane import app
 
-from nexushoratio.test_data import flags_one
-from nexushoratio.test_data import flags_two
+from mundane.test_data import flags_one
+from mundane.test_data import flags_two
 
 
 class ArgparseAppParsingTest(unittest.TestCase):

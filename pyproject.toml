@@ -1,5 +1,5 @@
 [project]
-name = 'nexushoratio'
+name = 'mundane'
 description = 'A small library for handling mundane things.'
 license = {file = 'LICENSE'}
 keywords = ['argparse', 'logging', 'cli']

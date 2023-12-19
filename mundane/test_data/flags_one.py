@@ -6,7 +6,7 @@ def nh_global_flags(an_app):
         '--foo', action='store_true', help='Enable foo-ing.')
 
 
-def nh_commands(an_app: 'nexushoratio.ArgparserApp'):
+def nh_commands(an_app: 'mundane.ArgparserApp'):
     """Register all module commands."""
     parser = an_app.register_command(generate_report)
 
