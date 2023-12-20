@@ -1,4 +1,5 @@
 """Tests for app.py"""
+
 import contextlib
 import inspect
 import io
@@ -17,22 +18,26 @@ class ArgparseAppParsingTest(unittest.TestCase):
         os.environ['COLUMNS'] = '80'
         os.environ['ROWS'] = '24'
 
+        self.my_app = app.ArgparseApp()
+        self.stdout = io.StringIO()
+        self.stderr = io.StringIO()
+
     def test_no_args(self):
-        my_app = app.ArgparseApp()
-        stdout = io.StringIO()
 
-        with contextlib.redirect_stdout(stdout):
-            my_app.parser.parse_args([])
+        with contextlib.redirect_stdout(
+                self.stdout), contextlib.redirect_stderr(self.stderr):
+            args = self.my_app.parser.parse_args([])
 
-        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(self.stdout.getvalue(), '')
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(vars(args), {})
 
     def test_dash_h(self):
-        my_app = app.ArgparseApp()
-        stdout = io.StringIO()
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(stdout):
-            my_app.parser.parse_args(['-h'])
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(['-h'])
 
         expected = inspect.cleandoc(
             r"""usage:.*\[-h\]
@@ -40,16 +45,16 @@ class ArgparseAppParsingTest(unittest.TestCase):
         Global flags:
           -h, --help
         """)
-        self.assertRegex(stdout.getvalue(), expected)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_dash_dash_help(self):
-        my_app = app.ArgparseApp()
-        stdout = io.StringIO()
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(stdout):
-            my_app.parser.parse_args(['--help'])
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(['--help'])
 
         expected = inspect.cleandoc(
             r"""usage:.*\[-h\]
@@ -57,22 +62,23 @@ class ArgparseAppParsingTest(unittest.TestCase):
         Global flags:
           -h, --help
         """)
-        self.assertRegex(stdout.getvalue(), expected)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_unknown_arg(self):
-        my_app = app.ArgparseApp()
-        stderr = io.StringIO()
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stderr(stderr):
-            my_app.parser.parse_args(['-k'])
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(['-k'])
 
         expected = inspect.cleandoc(
             r"""usage:.*\[-h\]
             .*error: unrecognized arguments: -k
             """)
-        self.assertRegex(stderr.getvalue(), expected)
+        self.assertEqual(self.stdout.getvalue(), '')
+        self.assertRegex(self.stderr.getvalue(), expected)
         self.assertEqual(result.exception.code, 2)
 
 
@@ -82,15 +88,18 @@ class ArgparseAppRegisterFlagsTest(unittest.TestCase):
         os.environ['COLUMNS'] = '60'
         os.environ['ROWS'] = '24'
 
-    def test_global_flags(self):
-        my_app = app.ArgparseApp()
-        stdout = io.StringIO()
+        self.my_app = app.ArgparseApp()
+        self.stdout = io.StringIO()
+        self.stderr = io.StringIO()
 
-        my_app.register_global_flags([flags_one, flags_two])
+    def test_global_flags(self):
+
+        self.my_app.register_global_flags([flags_one, flags_two])
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(stdout):
-            my_app.parser.parse_args(['-h'])
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(['-h'])
 
         expected = inspect.cleandoc(
             r"""usage:.*\[-h\] \[--foo\]
@@ -99,19 +108,18 @@ class ArgparseAppRegisterFlagsTest(unittest.TestCase):
           -h, --help
           --foo *Enable foo-ing.
         """)
-        self.assertRegex(stdout.getvalue(), expected)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_shared_flags(self):
-        my_app = app.ArgparseApp()
-        stdout = io.StringIO()
 
-        my_app.register_shared_flags([flags_one, flags_two])
+        self.my_app.register_shared_flags([flags_one, flags_two])
 
-        self.assertIn('foo', my_app._shared_parsers)  # pylint: disable=protected-access
+        self.assertIn('foo', self.my_app._shared_parsers)  # pylint: disable=protected-access
 
         self.assertRaisesRegex(
-            Exception, 'called again', my_app.register_shared_flags,
+            Exception, 'called again', self.my_app.register_shared_flags,
             [flags_one, flags_two])
 
 
@@ -123,6 +131,7 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
 
         self.my_app = app.ArgparseApp()
         self.stdout = io.StringIO()
+        self.stderr = io.StringIO()
 
         self.my_app.register_shared_flags([flags_one, flags_two])
         self.my_app.register_commands([flags_one, flags_two])
@@ -130,7 +139,7 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
     def test_dash_h_commands(self):
         with self.assertRaises(
                 SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['-h'])
 
         expected = inspect.cleandoc(
@@ -154,12 +163,13 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
             """)
 
         self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_generate_report_dash_h(self):
         with self.assertRaises(
                 SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['generate-report', '-h'])
 
         expected = inspect.cleandoc(
@@ -170,12 +180,13 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
             """)
 
         self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_put_on_hat_dash_h(self):
         with self.assertRaises(
                 SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['put-on-hat', '-h'])
 
         expected = inspect.cleandoc(
@@ -191,12 +202,13 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
             """)
 
         self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_remove_shoes_dash_h(self):
         with self.assertRaises(
                 SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['remove-shoes', '-h'])
 
         # Oops, implementer forgot to run through textwrap or equiv
@@ -211,12 +223,13 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
               -h, --help  show this help message and exit
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_ingest_dash_h(self):
         with self.assertRaises(
                 SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['ingest-new-material', '-h'])
 
         expected = inspect.cleandoc(
@@ -237,12 +250,13 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                                     Filename to ingest.
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_process_dash_h(self):
         with self.assertRaises(
                 SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['process', '-h'])
 
         expected = inspect.cleandoc(
@@ -254,12 +268,13 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
               -h, --help  show this help message and exit
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_dance_dash_h(self):
         with self.assertRaises(
                 SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['dance', '-h'])
 
         expected = inspect.cleandoc(
@@ -277,6 +292,7 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
               -n, --now, --no-now  Now or later. \(default: False\)
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_put_on_hat_foo(self):
