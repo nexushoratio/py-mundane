@@ -28,8 +28,12 @@ build-backend = 'setuptools.build_meta'
 
 [tool.coverage.run]
 branch = true
+data_file = '.coverage/data_file'
 command_line = '-m unittest discover -p *_test.py'
 source = ['.']
+
+[tool.coverage.html]
+directory = '.coverage/html'
 
 [tool.tox]
 legacy_tox_ini = """
