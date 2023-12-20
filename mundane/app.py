@@ -332,6 +332,7 @@ class ArgparseApp:
         return ret
 
 
+# pylint: disable=duplicate-code
 def run(func):  # pragma: no cover
     """Main entry point for application.
 
