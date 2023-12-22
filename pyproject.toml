@@ -48,4 +48,5 @@ sitepackages = True
 commands =
     python -m coverage run
     python -m coverage report
+    python -m coverage html
 """
