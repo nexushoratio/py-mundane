@@ -3,6 +3,7 @@
 import contextlib
 import inspect
 import io
+import sys
 import os
 import unittest
 
@@ -339,6 +340,169 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                 'func': flags_two.dance,
                 'now': False
             })
+
+
+class ArgparseAppRunCommandTest(unittest.TestCase):
+
+    def setUp(self):
+        os.environ['COLUMNS'] = '60'
+        os.environ['ROWS'] = '24'
+
+        self.my_app = app.ArgparseApp()
+        self.stdout = io.StringIO()
+        self.stderr = io.StringIO()
+
+        self.my_app.register_shared_flags([flags_one, flags_two])
+        self.my_app.register_commands([flags_one, flags_two])
+
+    def test_no_command_with_defaults(self):
+        with contextlib.redirect_stdout(
+                self.stdout), contextlib.redirect_stderr(self.stderr):
+            retcode = self.my_app.run([])
+
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\] <command> ...
+
+            Global flags:
+              -h, --help
+
+            Commands:
+              For more details: .* <command> --help
+
+              <command>            <command description>
+                generate-report
+                put-on-hat
+                remove-shoes       Shoes have custom help.
+                ingest-new-material
+                                   Take in new material.
+                process            Process random data.
+                dance              Like no one is watching.
+            """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(retcode, os.EX_USAGE)
+
+    def test_no_command_with_fallback(self):
+
+        def fallback(args):
+            print('fallback was called')
+            return 42
+
+        self.my_app.parser.set_defaults(func=fallback)
+
+        with contextlib.redirect_stdout(
+                self.stdout), contextlib.redirect_stderr(self.stderr):
+            retcode = self.my_app.run([])
+
+        self.assertEqual(self.stdout.getvalue(), 'fallback was called\n')
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(retcode, 42)
+
+    def test_fallback_with_dash_h(self):
+
+        def fallback(args):  # pragma: no cover
+            print('fallback was called')
+            return 42
+
+        self.my_app.parser.set_defaults(func=fallback)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.run(['-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\] <command> ...
+
+            Global flags:
+              -h, --help
+
+            Commands:
+              For more details: .* <command> --help
+
+              <command>            <command description>
+                generate-report
+                put-on-hat
+                remove-shoes       Shoes have custom help.
+                ingest-new-material
+                                   Take in new material.
+                process            Process random data.
+                dance              Like no one is watching.
+            """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_bogus_command_with_defaults(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run(['bogus-command']))
+
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\] <command> ...
+            .*: argument <command>: invalid choice: 'bogus-command'
+            """)
+        self.assertEqual(self.stdout.getvalue(), '')
+        self.assertRegex(self.stderr.getvalue(), expected)
+        self.assertEqual(result.exception.code, 2)
+
+    def test_bogus_command_with_fallback(self):
+
+        def fallback(args):  # pragma: no cover
+            print('fallback was called')
+            return 42
+
+        self.my_app.parser.set_defaults(func=fallback)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run(['bogosity']))
+
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\] <command> ...
+            .*: error: argument <command>: invalid choice: 'bogosity' \(choo.*
+            """)
+        self.assertEqual(self.stdout.getvalue(), '')
+        self.assertRegex(self.stderr.getvalue(), expected)
+        self.assertEqual(result.exception.code, 2)
+
+    def test_generate_report(self):
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run(['generate-report']))
+
+        expected = 'generating report using generate-report\n'
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, None)
+
+    def test_remove_shoes(self):
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run(['remove-shoes']))
+
+        expected = 'removing shoes because remove-shoes\n'
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 3)
+
+    def test_ingest_new_material(self):
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run(['ingest-new-material', '-f', 'blah']))
+
+        expected = 'ingesting material from blah\n'
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 5)
 
 
 if __name__ == '__main__':  # pragma: no cover

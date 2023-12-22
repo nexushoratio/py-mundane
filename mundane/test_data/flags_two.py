@@ -49,12 +49,12 @@ def ingest_new_material(args: 'argparse.Namespace') -> int:
     This is a second paragraph that has more details on what is going on in
     this command.  Including long sentences that wrap.
     """
-    print('ingest_material got', args)
+    print('ingesting material from', args.filename)
+    return 5
 
 
 def process(args: 'argparse.Namespace') -> int:
     """Process random data."""
-    print('procssing', args)
 
 
 def dance(args: 'argparse.Namespace') -> int:

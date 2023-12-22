@@ -24,14 +24,15 @@ def mundane_commands(an_app: 'mundane.ArgparserApp'):
 
 # Purposefully no docstring for testing.
 def generate_report(args: 'argparse.Namespace') -> int:
-    print('generating report using', args)
+    print('generating report using', args.name)
 
 
 # Purposefully no docstring for testing.
-def put_on_hat(args: 'argparse.Namespace') -> int:
-    print('putting on a hat with', args)
+def put_on_hat(args: 'argparse.Namespace') -> int:  # pragma: no cover
+    pass
 
 
 def remove_shoes(args: 'argparse.Namespace') -> int:
     """This will remove the shoes from the brakes."""
-    print('removing shoes because', args)
+    print('removing shoes because', args.name)
+    return 3
