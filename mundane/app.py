@@ -314,9 +314,9 @@ class ArgparseApp:
 
         return parser
 
-    def run(self) -> int:
+    def run(self, argv=None) -> int:
         """Execute the selected function."""
-        args = self.parser.parse_args()
+        args = self.parser.parse_args(argv)
         ret = os.EX_USAGE
         try:
             logging.debug('Calling %s with %s', args.func, args)
