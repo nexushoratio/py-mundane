@@ -4,6 +4,7 @@ import contextlib
 import inspect
 import io
 import os
+import pathlib
 import unittest
 
 from mundane import app
@@ -101,3 +102,36 @@ class FlagsTest(unittest.TestCase):
 
         self.assertGreater(
             root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
+
+
+class ActivateTest(unittest.TestCase):
+
+    def setUp(self):
+        logger = log_mgr.logging.getLogger()
+        orig_handlers = logger.handlers.copy()
+
+        def restore_orig_handlers():
+            for hdlr in logger.handlers:
+                if hdlr not in orig_handlers:
+                    logger.removeHandler(hdlr)
+                    hdlr.close()
+            for hdlr in orig_handlers:
+                if hdlr not in logger.handlers:
+                    logger.addHandler(hdlr)
+
+        self.addCleanup(restore_orig_handlers)
+
+    def test_noop(self):
+        # This triggers other paths in clean up so they do not bitrot.
+        pass
+
+    def test_correct_filename(self):
+        root_logger = log_mgr.logging.getLogger()
+
+        log_mgr.activate()
+
+        handler = root_logger.handlers[0]
+
+        # app.log.host.user.date-time.pid
+        pattern = '*/*.log.*.*.*-*.*'
+        self.assertTrue(pathlib.PurePath(handler.baseFilename).match(pattern))
