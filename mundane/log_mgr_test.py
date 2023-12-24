@@ -10,7 +10,7 @@ from mundane import app
 from mundane import log_mgr
 
 
-class LogMgrFlagsTest(unittest.TestCase):
+class FlagsTest(unittest.TestCase):
 
     def setUp(self):
         os.environ['COLUMNS'] = '60'
@@ -23,7 +23,7 @@ class LogMgrFlagsTest(unittest.TestCase):
 
         self.addCleanup(restore_orig_levels)
 
-    def test_dash_h(self):
+    def test_default_dash_h(self):
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
         stdout = io.StringIO()
@@ -70,3 +70,34 @@ class LogMgrFlagsTest(unittest.TestCase):
         """)
         self.assertRegex(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
+
+    def test_default_changes_logging_level(self):
+        root_logger = log_mgr.logging.getLogger()
+        root_logger.setLevel(0)
+
+        self.assertEqual(root_logger.getEffectiveLevel(), 0)
+
+        my_app = app.ArgparseApp()
+        my_app.register_global_flags([log_mgr])
+        my_app.parser.parse_args('-L info'.split())
+
+        self.assertEqual(
+            root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
+
+    def test_custom_changes_logging_level(self):
+        # between info and warning
+        log_mgr.logging.addLevelName(
+            (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'CUSTOM')
+
+        root_logger = log_mgr.logging.getLogger()
+        root_logger.setLevel(0)
+
+        self.assertEqual(root_logger.getEffectiveLevel(), 0)
+
+        my_app = app.ArgparseApp()
+        my_app.register_global_flags([log_mgr])
+
+        my_app.parser.parse_args('-L custom'.split())
+
+        self.assertGreater(
+            root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
