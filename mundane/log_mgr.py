@@ -24,16 +24,21 @@ def mundane_global_flags(argp_app: 'mundane.ArgparserApp'):
         """Callback action to tweak log settings during flag parsing."""
 
         def __call__(self, parser, namespace, values, option_string=None):
-            numeric_level = getattr(logging, values.upper())
-            logging.getLogger().setLevel(numeric_level)
+            logging.getLogger().setLevel(values.upper())
+
+    # TODO: switch to getLevelNamesMapping() once minver = 3.11
+    choices = tuple(
+        item[1].lower()
+        for item in sorted(logging._levelToName.items())  # pylint: disable=protected-access
+        if item[0])
 
     argp_app.global_flags.add_argument(
         '-L',
         '--log-level',
         action=LogAction,
-        help='Log level',
+        help='Minimal log level',
         default=argparse.SUPPRESS,
-        choices=('debug', 'info', 'warning', 'error'))
+        choices=choices)
 
 
 def activate():
