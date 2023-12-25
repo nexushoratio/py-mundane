@@ -3,8 +3,9 @@
 import contextlib
 import inspect
 import io
-import sys
+import logging
 import os
+import sys
 import unittest
 
 from mundane import app
@@ -89,11 +90,32 @@ class ArgparseAppParsingTest(unittest.TestCase):
 class ArgparseAppParsingWithLogMgrTest(unittest.TestCase):
 
     def setUp(self):
+        # Ensure a handler exists
+        logging.debug(self.id)
+
         os.environ['COLUMNS'] = '80'
         os.environ['ROWS'] = '24'
 
         self.stdout = io.StringIO()
         self.stderr = io.StringIO()
+
+        logger = logging.getLogger()
+        orig_handlers = logger.handlers.copy()
+
+        def restore_orig_handlers():
+            for hdlr in logger.handlers:
+                if hdlr not in orig_handlers:
+                    logger.removeHandler(hdlr)
+                    hdlr.close()
+            for hdlr in orig_handlers:
+                if hdlr not in logger.handlers:
+                    logger.addHandler(hdlr)
+
+        self.addCleanup(restore_orig_handlers)
+
+    def test_noop(self):
+        # This triggers other paths in clean up so they do not bitrot.
+        pass
 
     def test_dash_h(self):
         my_app = app.ArgparseApp(use_log_mgr=True)
@@ -114,6 +136,14 @@ class ArgparseAppParsingWithLogMgrTest(unittest.TestCase):
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
+
+    def test_activated(self):
+        app.ArgparseApp(use_log_mgr=True)
+
+        root_logger = logging.getLogger()
+        handler = root_logger.handlers[0]
+
+        self.assertIsInstance(handler, logging.FileHandler)
 
 
 class ArgparseAppRegisterFlagsTest(unittest.TestCase):

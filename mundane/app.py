@@ -128,6 +128,7 @@ class ArgparseApp:
 
         if use_log_mgr:
             self.register_global_flags([log_mgr])
+            log_mgr.activate()
 
     @property
     def argparse_api(self) -> types.ModuleType:
