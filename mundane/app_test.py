@@ -45,6 +45,7 @@ class ArgparseAppParsingTest(unittest.TestCase):
 
         Global flags:
           -h, --help
+
         """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -82,6 +83,7 @@ class ArgparseAppParsingTest(unittest.TestCase):
 
         Global flags:
           -h, --help
+
         """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -97,6 +99,7 @@ class ArgparseAppParsingTest(unittest.TestCase):
         expected = inspect.cleandoc(
             r"""usage:.*\[-h\]
             .*error: unrecognized arguments: -k
+
             """)
         self.assertEqual(self.stdout.getvalue(), '')
         self.assertRegex(self.stderr.getvalue(), expected)
@@ -128,6 +131,7 @@ class ArgparseAppRegisterFlagsTest(unittest.TestCase):
         Global flags:
           -h, --help
           --foo *Enable foo-ing.
+
         """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -198,6 +202,7 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
 
             options:
               -h, --help  show this help message and exit
+
             """)
 
         self.assertRegex(self.stdout.getvalue(), expected)
@@ -220,6 +225,7 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                                     The xyzzy input.
               -k, --keep, --no-keep
                                     Keep intermediates.
+
             """)
 
         self.assertRegex(self.stdout.getvalue(), expected)
@@ -242,6 +248,7 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
 
             options:
               -h, --help  show this help message and exit
+
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -269,6 +276,7 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
               -h, --help            show this help message and exit
               -f FILENAME, --filename FILENAME
                                     Filename to ingest.
+
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -287,6 +295,7 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
 
             options:
               -h, --help  show this help message and exit
+
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -311,6 +320,7 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
             options:
               -h, --help           show this help message and exit
               -n, --now, --no-now  Now or later. \(default: False\)
+
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -397,6 +407,7 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
                                    Take in new material.
                 process            Process random data.
                 dance              Like no one is watching.
+
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -448,6 +459,7 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
                                    Take in new material.
                 process            Process random data.
                 dance              Like no one is watching.
+
             """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -462,6 +474,7 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
         expected = inspect.cleandoc(
             r"""usage:.*\[-h\] <command> ...
             .*: argument <command>: invalid choice: 'bogus-command'
+
             """)
         self.assertEqual(self.stdout.getvalue(), '')
         self.assertRegex(self.stderr.getvalue(), expected)
@@ -483,6 +496,7 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
         expected = inspect.cleandoc(
             r"""usage:.*\[-h\] <command> ...
             .*: error: argument <command>: invalid choice: 'bogosity' \(choo.*
+
             """)
         self.assertEqual(self.stdout.getvalue(), '')
         self.assertRegex(self.stderr.getvalue(), expected)

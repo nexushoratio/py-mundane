@@ -41,6 +41,7 @@ class FlagsTest(unittest.TestCase):
           -h, --help
           -L {levels}, --log-level {levels}
          *Minimal log level
+
         """)
         self.assertRegex(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
@@ -66,6 +67,7 @@ class FlagsTest(unittest.TestCase):
           -h, --help
           -L {levels}, --log-level {levels}
          *Minimal log level
+
         """)
         self.assertRegex(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
