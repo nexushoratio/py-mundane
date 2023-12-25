@@ -29,6 +29,8 @@ import typing
 
 import humanize
 
+from mundane import log_mgr
+
 
 class LogAction(argparse.Action):  # pylint: disable=too-few-public-methods
     """Callback action to tweak log settings during flag parsing."""
@@ -114,7 +116,7 @@ class ArgparseApp:
 
     GLOBAL_FLAGS = 'Global flags'
 
-    def __init__(self):
+    def __init__(self, use_log_mgr=True):
         """Initialize with the callback function."""
         self._parser = argparse.ArgumentParser(add_help=False)
         self._global_flags = self._parser.add_argument_group(
@@ -123,6 +125,9 @@ class ArgparseApp:
         self._shared_parsers = dict()
         self._subparser = None
         self._width = None
+
+        if use_log_mgr:
+            self.register_global_flags([log_mgr])
 
     @property
     def argparse_api(self) -> types.ModuleType:

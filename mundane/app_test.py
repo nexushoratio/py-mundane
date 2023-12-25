@@ -19,7 +19,7 @@ class ArgparseAppParsingTest(unittest.TestCase):
         os.environ['COLUMNS'] = '80'
         os.environ['ROWS'] = '24'
 
-        self.my_app = app.ArgparseApp()
+        self.my_app = app.ArgparseApp(use_log_mgr=False)
         self.stdout = io.StringIO()
         self.stderr = io.StringIO()
 
@@ -45,6 +45,26 @@ class ArgparseAppParsingTest(unittest.TestCase):
 
         Global flags:
           -h, --help
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_dash_h_with_log_mgr(self):
+        self.my_app = app.ArgparseApp()
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(['-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\] \[-L {.*}\]
+
+        Global flags:
+          -h, --help
+          -L {.*}, --log-level {.*}
+
         """)
         self.assertRegex(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -89,7 +109,7 @@ class ArgparseAppRegisterFlagsTest(unittest.TestCase):
         os.environ['COLUMNS'] = '60'
         os.environ['ROWS'] = '24'
 
-        self.my_app = app.ArgparseApp()
+        self.my_app = app.ArgparseApp(use_log_mgr=False)
         self.stdout = io.StringIO()
         self.stderr = io.StringIO()
 
@@ -130,7 +150,7 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
         os.environ['COLUMNS'] = '60'
         os.environ['ROWS'] = '24'
 
-        self.my_app = app.ArgparseApp()
+        self.my_app = app.ArgparseApp(use_log_mgr=False)
         self.stdout = io.StringIO()
         self.stderr = io.StringIO()
 
@@ -348,7 +368,7 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
         os.environ['COLUMNS'] = '60'
         os.environ['ROWS'] = '24'
 
-        self.my_app = app.ArgparseApp()
+        self.my_app = app.ArgparseApp(use_log_mgr=False)
         self.stdout = io.StringIO()
         self.stderr = io.StringIO()
 
