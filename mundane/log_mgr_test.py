@@ -26,6 +26,7 @@ class FlagsTest(unittest.TestCase):
 
     def test_default_dash_h(self):
         my_app = app.ArgparseApp()
+        my_app.register_global_flags([log_mgr])
         stdout = io.StringIO()
 
         with self.assertRaises(
@@ -52,6 +53,7 @@ class FlagsTest(unittest.TestCase):
             (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'CUSTOM')
 
         my_app = app.ArgparseApp()
+        my_app.register_global_flags([log_mgr])
         stdout = io.StringIO()
 
         with self.assertRaises(
@@ -79,10 +81,13 @@ class FlagsTest(unittest.TestCase):
         self.assertEqual(root_logger.getEffectiveLevel(), 0)
 
         my_app = app.ArgparseApp()
-        my_app.parser.parse_args('-L info'.split())
+        my_app.register_global_flags([log_mgr])
+
+        args = my_app.parser.parse_args('-L info'.split())
 
         self.assertEqual(
             root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
+        self.assertEqual(vars(args), {}, 'log level should not be here')
 
     def test_custom_changes_logging_level(self):
         # between info and warning
@@ -94,7 +99,7 @@ class FlagsTest(unittest.TestCase):
 
         self.assertEqual(root_logger.getEffectiveLevel(), 0)
 
-        my_app = app.ArgparseApp(use_log_mgr=False)
+        my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
 
         my_app.parser.parse_args('-L custom'.split())
