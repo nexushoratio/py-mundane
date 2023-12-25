@@ -115,11 +115,7 @@ class ArgparseApp:
     GLOBAL_FLAGS = 'Global flags'
 
     def __init__(self):
-        """Initialize with the callback function.
-
-        Args:
-          main: The function to call when executed via run().
-        """
+        """Initialize with the callback function."""
         self._parser = argparse.ArgumentParser(add_help=False)
         self._global_flags = self._parser.add_argument_group(
             self.GLOBAL_FLAGS)
