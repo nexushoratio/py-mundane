@@ -45,7 +45,7 @@ def activate():
     """Activate this logfile setup."""
     # argv[0] -> argv[0].$HOST.$USER.$DATETIME.$PID
 
-    progname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+    progname = os.path.basename(sys.argv[0])
     now = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 
     short_filename = f'{progname}.log'
