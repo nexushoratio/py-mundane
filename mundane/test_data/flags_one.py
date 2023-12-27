@@ -2,13 +2,14 @@
 
 
 def mundane_global_flags(an_app: 'mundane.ArgparserApp'):
+    """Register global flags for the application."""
     an_app.global_flags.add_argument(
         '--foo', action='store_true', help='Enable foo-ing.')
 
 
 def mundane_commands(an_app: 'mundane.ArgparserApp'):
     """Register all module commands."""
-    parser = an_app.register_command(generate_report)
+    an_app.register_command(generate_report)
 
     foo_flags = an_app.get_shared_parser('foo')
     an_app.register_command(put_on_hat, parents=[foo_flags])
