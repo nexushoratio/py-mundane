@@ -5,10 +5,24 @@ import inspect
 import io
 import os
 import pathlib
+import sys
+import tempfile
 import unittest
 
 from mundane import app
 from mundane import log_mgr
+
+
+def setUpModule():
+    """Set up a new temp directory due to lots of log files."""
+    orig_dir = tempfile.tempdir
+
+    def restore_tempdir():
+        tempfile.tempdir = orig_dir
+
+    unittest.addModuleCleanup(restore_tempdir)
+
+    tempfile.tempdir = tempfile.mkdtemp()
 
 
 class FlagsTest(unittest.TestCase):
@@ -125,6 +139,15 @@ class ActivateTest(unittest.TestCase):
 
         self.addCleanup(restore_orig_handlers)
 
+        orig_sys_argv0 = sys.argv[0]
+
+        def restore_sys_argv0():
+            sys.argv[0] = orig_sys_argv0
+
+        self.addCleanup(restore_sys_argv0)
+
+        sys.argv[0] = self.id()
+
     def test_noop(self):
         # This triggers other paths in clean up so they do not bitrot.
         pass
@@ -139,3 +162,32 @@ class ActivateTest(unittest.TestCase):
         # app.log.host.user.date-time.pid
         pattern = '*/*.log.*.*.*-*.*'
         self.assertTrue(pathlib.PurePath(handler.baseFilename).match(pattern))
+
+    def test_symlink_dst_created(self):
+        dst = pathlib.Path(tempfile.gettempdir(), f'{self.id()}.log')
+
+        log_mgr.activate()
+
+        self.assertTrue(dst.is_symlink())
+
+    def test_symlink_dst_already_exists(self):
+        dst = pathlib.Path(tempfile.gettempdir(), f'{self.id()}.log')
+
+        dst.touch()
+        self.assertFalse(dst.is_symlink(), 'sanity check')
+
+        log_mgr.activate()
+
+        self.assertTrue(dst.is_symlink())
+
+    def test_symlink_dst_is_directory(self):
+        dst = pathlib.Path(
+            tempfile.gettempdir(),
+            pathlib.PurePath(self.id()).with_suffix('.log'))
+
+        dst.mkdir()
+        self.assertTrue(dst.is_dir(), 'sanity check')
+
+        log_mgr.activate()
+
+        self.assertTrue(dst.is_dir())
