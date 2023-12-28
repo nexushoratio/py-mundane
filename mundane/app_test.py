@@ -87,6 +87,41 @@ class ArgparseAppParsingTest(unittest.TestCase):
         self.assertEqual(result.exception.code, 2)
 
 
+class ArgparseAppCustomizationsTest(unittest.TestCase):
+
+    def setUp(self):
+        os.environ['COLUMNS'] = '80'
+        os.environ['ROWS'] = '24'
+
+        self.stdout = io.StringIO()
+        self.stderr = io.StringIO()
+
+    def test_with_extras(self):
+        description = 'This app does this thing.'
+        epilog = 'This is an epilog.'
+        my_app = app.ArgparseApp(description=description, epilog=epilog)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            my_app.parser.parse_args(['-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage:.*\[-h\]
+
+        This app does this thing.
+
+        Global flags:
+          -h, --help
+
+        This is an epilog.
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+
 class ArgparseAppParsingWithLogMgrTest(unittest.TestCase):
 
     def setUp(self):

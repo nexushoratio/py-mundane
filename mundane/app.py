@@ -116,14 +116,21 @@ class ArgparseApp:
 
     GLOBAL_FLAGS = 'Global flags'
 
-    def __init__(self, use_log_mgr=False):
+    def __init__(self, use_log_mgr=False, **kwargs):
         """Initialize with the application.
 
         Args:
           use_log_mgr: Automatically add log_mgr's global flags and activate
             its logging configuration.
+          kwargs: Passed directly to ArgumentParser().
         """
-        self._parser = argparse.ArgumentParser(add_help=False)
+        parser_args = {
+            'formatter_class': argparse.RawDescriptionHelpFormatter,
+            'add_help': False,
+        }
+        parser_args.update(kwargs)
+
+        self._parser = argparse.ArgumentParser(**parser_args)
         self._global_flags = self._parser.add_argument_group(
             self.GLOBAL_FLAGS)
         self._global_flags.add_argument('-h', '--help', action='help')
