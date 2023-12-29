@@ -46,6 +46,8 @@ def ingest_new_material(args: 'argparse.Namespace') -> int:
 
     Read the material and do something useful with it.
 
+
+
     This is a second paragraph that has more details on what is going on in
     this command.  Including long sentences that wrap.
     """

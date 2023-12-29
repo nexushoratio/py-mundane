@@ -14,6 +14,193 @@ from mundane.test_data import flags_one
 from mundane.test_data import flags_two
 
 
+class DocstringTest(unittest.TestCase):
+
+    def test_summary_only(self):
+        """This is a simple method."""
+
+        doc = app.Docstring(self.test_summary_only, 80)
+
+        self.assertEqual(doc.summary, 'This is a simple method.')
+        self.assertEqual(doc.description, 'This is a simple method.')
+
+    def test_no_docstring(self):
+        doc = app.Docstring(self.test_no_docstring, 80)
+
+        self.assertEqual(doc.summary, '')
+        self.assertEqual(doc.description, '')
+
+    def test_docstring(self):
+        """Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+        Nam non ornare ex, sit amet aliquet urna.  Mauris a fringilla
+        justo.  Mauris eget mi arcu.  Mauris pretium faucibus purus eget
+        consequat.
+
+        Quisque et luctus lacus.  Mauris volutpat lacinia dignissim.  Cras
+        cursus aliquam lacus a ultrices.  Proin nec nisi tristique, rutrum
+        erat ac, rhoncus sapien.  Morbi vel eros ac est commodo
+        malesuada.  Phasellus cursus porta ligula quis suscipit.  Maecenas
+        at turpis neque.  Ut ipsum neque, eleifend hendrerit massa fringilla,
+        tincidunt rutrum nisi.
+
+        Integer tristique tortor et eros dictum pellentesque.
+        """
+
+    def test_long_normal_width(self):
+        doc = app.Docstring(self.test_docstring, 80)
+
+        expected_description = (
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+            '',
+            'Nam non ornare ex, sit amet aliquet urna.  Mauris a fringilla'
+            ' justo.  Mauris',
+            'eget mi arcu.  Mauris pretium faucibus purus eget consequat.',
+            '',
+            'Quisque et luctus lacus.  Mauris volutpat lacinia'
+            ' dignissim.  Cras cursus',
+            'aliquam lacus a ultrices.  Proin nec nisi tristique, rutrum'
+            ' erat ac, rhoncus',
+            'sapien.  Morbi vel eros ac est commodo malesuada.  Phasellus'
+            ' cursus porta ligula',
+            'quis suscipit.  Maecenas at turpis neque.  Ut ipsum neque,'
+            ' eleifend hendrerit',
+            'massa fringilla, tincidunt rutrum nisi.',
+            '',
+            'Integer tristique tortor et eros dictum pellentesque.',
+        )
+        self.assertEqual(
+            doc.summary,
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit.')
+        self.assertEqual(doc.description, '\n'.join(expected_description))
+
+    def test_full_wide_width(self):
+        doc = app.Docstring(self.test_docstring, 150)
+
+        expected_description = (
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+            '',
+            'Nam non ornare ex, sit amet aliquet urna.  Mauris a fringilla'
+            ' justo.  Mauris eget mi arcu.  Mauris pretium faucibus purus'
+            ' eget consequat.',
+            '',
+            'Quisque et luctus lacus.  Mauris volutpat lacinia'
+            ' dignissim.  Cras cursus aliquam lacus a ultrices.  Proin nec'
+            ' nisi tristique, rutrum erat ac, rhoncus',
+            'sapien.  Morbi vel eros ac est commodo malesuada.  Phasellus'
+            ' cursus porta ligula quis suscipit.  Maecenas at turpis'
+            ' neque.  Ut ipsum neque, eleifend',
+            'hendrerit massa fringilla, tincidunt rutrum nisi.',
+            '',
+            'Integer tristique tortor et eros dictum pellentesque.',
+        )
+        self.assertEqual(
+            doc.summary,
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit.')
+        self.assertEqual(doc.description, '\n'.join(expected_description))
+
+    def test_full_narrow_width(self):
+        doc = app.Docstring(self.test_docstring, 40)
+
+        expected_description = (
+            'Lorem ipsum dolor sit amet, consectetur',
+            'adipiscing elit.',
+            '',
+            'Nam non ornare ex, sit amet aliquet',
+            'urna.  Mauris a fringilla justo.  Mauris',
+            'eget mi arcu.  Mauris pretium faucibus',
+            'purus eget consequat.',
+            '',
+            'Quisque et luctus lacus.  Mauris',
+            'volutpat lacinia dignissim.  Cras cursus',
+            'aliquam lacus a ultrices.  Proin nec',
+            'nisi tristique, rutrum erat ac, rhoncus',
+            'sapien.  Morbi vel eros ac est commodo',
+            'malesuada.  Phasellus cursus porta',
+            'ligula quis suscipit.  Maecenas at',
+            'turpis neque.  Ut ipsum neque, eleifend',
+            'hendrerit massa fringilla, tincidunt',
+            'rutrum nisi.',
+            '',
+            'Integer tristique tortor et eros dictum',
+            'pellentesque.',
+        )
+        self.assertEqual(doc.description, '\n'.join(expected_description))
+        self.assertEqual(
+            doc.summary,
+            'Lorem ipsum dolor sit amet, consectetur\nadipiscing elit.')
+
+    def test_missing_blank_line_after_summary(self):
+        """This is my summary.
+        This is the next line.
+
+        Then the final content.
+        """
+        doc = app.Docstring(self.test_missing_blank_line_after_summary, 80)
+
+        expected_description = (
+            'This is my summary.',
+            '',
+            'This is the next line.',
+            '',
+            'Then the final content.',
+        )
+
+        self.assertEqual(doc.summary, 'This is my summary.')
+        self.assertEqual(doc.description, '\n'.join(expected_description))
+
+    def test_extra_blank_line_after_summary(self):
+        """This is the blank line summary.
+
+        """
+        doc = app.Docstring(self.test_extra_blank_line_after_summary, 80)
+
+        self.assertEqual(doc.summary, 'This is the blank line summary.')
+        self.assertEqual(doc.description, 'This is the blank line summary.')
+
+    def test_extra_blank_lines_in_docstring(self):
+        """This is the first line.
+
+
+        Then after two blank lines.
+
+
+
+        And more blank lines.
+
+        """
+        doc = app.Docstring(self.test_extra_blank_lines_in_docstring, 80)
+
+        expected_description = (
+            'This is the first line.',
+            '',
+            'Then after two blank lines.',
+            '',
+            'And more blank lines.',
+        )
+        self.assertEqual(doc.summary, 'This is the first line.')
+        self.assertEqual(doc.description, '\n'.join(expected_description))
+
+    def test_first_line_is_blank(self):
+        """
+
+        This is really the first line.
+
+        Then the last.
+
+
+        """
+        doc = app.Docstring(self.test_first_line_is_blank, 80)
+
+        expected_description = (
+            'This is really the first line.',
+            '',
+            'Then the last.',
+        )
+        self.assertEqual(doc.summary, 'This is really the first line.')
+        self.assertEqual(doc.description, '\n'.join(expected_description))
+
+
 class ArgparseAppParsingTest(unittest.TestCase):
 
     def setUp(self):

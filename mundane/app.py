@@ -32,6 +32,73 @@ import humanize
 from mundane import log_mgr
 
 
+class Docstring:
+    """A reflowed docstring.
+
+    Given any object with a __doc__ property, reflow the docstring to a given
+    width.
+
+    The instance has two properties: summary and description.
+    """
+
+    def __init__(self, obj: typing.Any, width: int):
+        """Reflow the docstring.
+
+        Args:
+          obj: Any object with a docstring (module, function, etc).
+          width: How wide the result should be.
+        """
+        self._doc = inspect.getdoc(obj)
+        self._width = width
+        self._summary = None
+        self._description = None
+
+    @property
+    def summary(self):
+        """The first line of the docstring, reflowed."""
+        if self._summary is None:
+            self._process()
+        return self._summary
+
+    @property
+    def description(self):
+        """Full docstring, reflowed."""
+        if self._description is None:
+            self._process()
+        return self._description
+
+    def _process(self):
+        """Perform the actual split/reflow of the docstring."""
+        self._summary = ''
+        self._description = ''
+        description_parts = list()
+
+        def paragraphs(content):
+            split = content.split('\n')
+            yield textwrap.fill(split.pop(0).strip(), width=self._width)
+
+            current = list()
+            for item in split:
+                stripped = item.strip()
+                if stripped:
+                    current.append(stripped)
+                else:
+                    if current:
+                        yield textwrap.fill(
+                            ' '.join(current), width=self._width)
+                        current.clear()
+            if current:
+                yield textwrap.fill(' '.join(current), width=self._width)
+
+        if self._doc:
+            for para in paragraphs(self._doc):
+                if not self._summary:
+                    self._summary = para
+                description_parts.append(para)
+
+        self._description = '\n\n'.join(description_parts)
+
+
 class LogAction(argparse.Action):  # pylint: disable=too-few-public-methods
     """Callback action to tweak log settings during flag parsing."""
 
@@ -255,27 +322,13 @@ class ArgparseApp:
             The result of add_parser() filled with information extracted from
             the function.
         """
-        docstring = inspect.getdoc(func)
         name = func.__name__.replace('_', '-')
-        description_parts = list()
-        summary = None
-        body = None
-        if docstring:
-            split = docstring.split('\n', 1)
-            summary = split.pop(0).strip()
-            description_parts.append(summary)
-            if split:
-                body = '\n\n'.join(
-                    textwrap.fill(x, width=self.width)
-                    for x in split[-1].strip().split('\n\n'))
-                description_parts.append(body)
-
-        description = '\n\n'.join(description_parts)
+        docstring = Docstring(func, self.width)
 
         parser_args = {
             'formatter_class': argparse.RawDescriptionHelpFormatter,
-            'help': summary,
-            'description': description,
+            'help': docstring.summary,
+            'description': docstring.description,
         }
         parser_args.update(kwargs)
 
