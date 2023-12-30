@@ -368,6 +368,95 @@ class ArgparseAppParsingWithLogMgrTest(unittest.TestCase):
         self.assertIsInstance(handler, logging.FileHandler)
 
 
+class ArgparseAppWithDocstringTest(unittest.TestCase):
+
+    def setUp(self):
+        os.environ['COLUMNS'] = '50'
+        os.environ['ROWS'] = '24'
+
+        self.stdout = io.StringIO()
+        self.stderr = io.StringIO()
+
+    def test_simple_docstring(self):
+        """This is a simple docstring."""
+
+        my_app = app.ArgparseApp(
+            use_docstring_for_description=self.test_simple_docstring)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            my_app.parser.parse_args(['-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage: .* \[-h\]
+
+        This is a simple docstring.
+
+        Global flags:
+          -h, --help
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_longer_docstring(self):
+        """Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+        Nam non ornare ex, sit amet aliquet urna.  Mauris a fringilla
+        justo.  Mauris eget mi arcu.  Mauris pretium faucibus purus eget
+        consequat.
+        """
+
+        my_app = app.ArgparseApp(
+            use_docstring_for_description=self.test_longer_docstring)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            my_app.parser.parse_args(['-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage: .* \[-h\]
+
+        Lorem ipsum dolor sit amet, consectetur adipiscing
+        elit.
+
+        Nam non ornare ex, sit amet aliquet urna.  Mauris
+        a fringilla justo.  Mauris eget mi arcu.  Mauris
+        pretium faucibus purus eget consequat.
+
+        Global flags:
+          -h, --help
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_real_module(self):
+        my_app = app.ArgparseApp(use_docstring_for_description=flags_one)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            my_app.parser.parse_args(['-h'])
+
+        expected = inspect.cleandoc(
+            r"""usage: .* \[-h\]
+
+        Yes global flag, no shared flags, yes commands.
+
+        Global flags:
+          -h, --help
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+
 class ArgparseAppRegisterFlagsTest(unittest.TestCase):
 
     def setUp(self):

@@ -183,18 +183,30 @@ class ArgparseApp:
 
     GLOBAL_FLAGS = 'Global flags'
 
-    def __init__(self, use_log_mgr: bool = False, **kwargs):
+    def __init__(
+            self,
+            use_log_mgr: bool = False,
+            use_docstring_for_description: typing.Any = None,
+            **kwargs):
         """Initialize with the application.
 
         Args:
           use_log_mgr: Automatically add log_mgr's global flags and activate
             its logging configuration.
+          use_docstring_for_description: Any object with a docstring (module,
+            function, etc).  Will be the initial source for the description
+            kwarg passed to ArgumentParser().
           kwargs: Passed directly to ArgumentParser().
         """
         parser_args = {
             'formatter_class': argparse.RawDescriptionHelpFormatter,
             'add_help': False,
         }
+        self._width = None
+        if use_docstring_for_description:
+            parser_args['description'] = Docstring(
+                use_docstring_for_description, self.width).description
+
         parser_args.update(kwargs)
 
         self._parser = argparse.ArgumentParser(**parser_args)
@@ -203,7 +215,6 @@ class ArgparseApp:
         self._global_flags.add_argument('-h', '--help', action='help')
         self._shared_parsers = dict()
         self._subparser = None
-        self._width = None
 
         if use_log_mgr:
             self.register_global_flags([log_mgr])
