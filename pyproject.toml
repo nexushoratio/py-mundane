@@ -35,6 +35,21 @@ source = ['.']
 [tool.coverage.html]
 directory = '.coverage/html'
 
+[tool.pylint.basic]
+docstring-min-length = 2
+good-names = ["setUpModule"]
+no-docstring-rgx = "(^__|_?test.*|.*Test)"
+
+[tool.pylint.messages_control]
+disable = [
+  'unused-argument',  # Fix this
+  'use-dict-literal',
+  'use-list-literal',
+]
+
+[tool.pylint.miscellaneous]
+notes = ["FIXME"]
+
 [tool.tox]
 legacy_tox_ini = """
 [tox]
@@ -46,6 +61,7 @@ isolated_build = True
 passenv = PYTHON*
 sitepackages = True
 commands =
+    python -m pylint mundane
     python -m coverage run
     python -m coverage report
     python -m coverage html
