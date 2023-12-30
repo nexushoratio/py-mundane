@@ -23,7 +23,12 @@ def mundane_global_flags(argp_app: 'mundane.ArgparserApp'):
     class LogAction(argparse.Action):  # pylint: disable=too-few-public-methods
         """Callback action to tweak log settings during flag parsing."""
 
-        def __call__(self, parser, namespace, values, option_string=None):
+        def __call__(
+                self,
+                parser: argparse.ArgumentParser,
+                namespace: argparse.Namespace,
+                values: str,
+                option_string: str = None):
             logging.getLogger().setLevel(values.upper())
 
     # TODO: switch to getLevelNamesMapping() once minver = 3.11

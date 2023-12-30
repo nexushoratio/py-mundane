@@ -183,7 +183,7 @@ class ArgparseApp:
 
     GLOBAL_FLAGS = 'Global flags'
 
-    def __init__(self, use_log_mgr=False, **kwargs):
+    def __init__(self, use_log_mgr: bool = False, **kwargs):
         """Initialize with the application.
 
         Args:
@@ -412,7 +412,7 @@ class ArgparseApp:
         """
         self._register_module_via_hooks('mundane_commands', modules)
 
-    def run(self, argv=None) -> int:
+    def run(self, argv: list[str] = None) -> int:
         """Execute the selected function."""
         args = self.parser.parse_args(argv)
         ret = os.EX_USAGE
