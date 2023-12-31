@@ -30,7 +30,7 @@ def generate_report(args: 'argparse.Namespace') -> int:
 
 # Purposefully no docstring for testing.
 def put_on_hat(args: 'argparse.Namespace') -> int:  # pragma: no cover
-    pass
+    del args
 
 
 def remove_shoes(args: 'argparse.Namespace') -> int:

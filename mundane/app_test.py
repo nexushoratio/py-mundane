@@ -767,6 +767,7 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
     def test_no_command_with_fallback(self):
 
         def fallback(args):
+            del args
             print('fallback was called')
             return 42
 
@@ -783,6 +784,7 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
     def test_fallback_with_dash_h(self):
 
         def fallback(args):  # pragma: no cover
+            del args
             print('fallback was called')
             return 42
 
@@ -834,6 +836,7 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
     def test_bogus_command_with_fallback(self):
 
         def fallback(args):  # pragma: no cover
+            del args
             print('fallback was called')
             return 42
 

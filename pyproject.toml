@@ -42,7 +42,6 @@ no-docstring-rgx = "(^__|_?test.*|.*Test)"
 
 [tool.pylint.messages_control]
 disable = [
-  'unused-argument',  # Fix this
   'use-dict-literal',
   'use-list-literal',
 ]
