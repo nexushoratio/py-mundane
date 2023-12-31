@@ -35,15 +35,6 @@ split_before_dot = true
 split_before_first_argument = true
 split_complex_comprehension = true
 
-[tool.coverage.run]
-branch = true
-data_file = '.coverage/data_file'
-command_line = '-m unittest discover -p *_test.py'
-source = ['.']
-
-[tool.coverage.html]
-directory = '.coverage/html'
-
 [tool.pylint.basic]
 docstring-min-length = 2
 good-names = ["setUpModule"]
@@ -58,6 +49,15 @@ disable = [
 
 [tool.pylint.miscellaneous]
 notes = ["FIXME"]
+
+[tool.coverage.run]
+branch = true
+data_file = '.coverage/data_file'
+command_line = '-m unittest discover -p *_test.py'
+source = ['.']
+
+[tool.coverage.html]
+directory = '.coverage/html'
 
 [tool.tox]
 legacy_tox_ini = """
