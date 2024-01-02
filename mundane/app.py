@@ -186,7 +186,7 @@ class ArgparseApp:
     def __init__(
             self,
             use_log_mgr: bool = False,
-            use_docstring_for_description: typing.Any = None,
+            use_docstring_for_description: typing.Any | None = None,
             **kwargs):
         """Initialize with the application.
 
@@ -423,7 +423,7 @@ class ArgparseApp:
         """
         self._register_module_via_hooks('mundane_commands', modules)
 
-    def run(self, argv: list[str] = None) -> int:
+    def run(self, argv: list[str] | None = None) -> int:
         """Execute the selected function."""
         args = self.parser.parse_args(argv)
         ret = os.EX_USAGE

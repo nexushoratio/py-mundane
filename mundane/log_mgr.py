@@ -28,7 +28,7 @@ def mundane_global_flags(argp_app: 'mundane.ArgparserApp'):
                 parser: argparse.ArgumentParser,
                 namespace: argparse.Namespace,
                 values: str,
-                option_string: str = None):
+                option_string: str | None = None):
             logging.getLogger().setLevel(values.upper())
 
     # TODO: switch to getLevelNamesMapping() once minver = 3.11
