@@ -349,7 +349,7 @@ class ArgparseApp:
         return parser
 
     def _register_module_via_hooks(
-            self, hook_name: str, modules: list[types.ModuleType]):
+            self, hook_name: str, modules: typing.Iterable[types.ModuleType]):
         """Implements processing of modules to maybe execute a hook."""
         for module in modules:
             register_func = getattr(module, hook_name, None)
