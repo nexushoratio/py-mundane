@@ -175,7 +175,7 @@ class ArgparseApp:
     The magic comes from a simple expectation:
     * The Namespace object returned from the resulting parse_args() will
     contain an attribute named "func" with the signature:
-        typing.Callable[argparse.Namespace, int]
+        typing.Callable[[argparse.Namespace], int]
 
     Generally this is done via the register_command() method, but may be done
     so directly as well via the parser property and its set_defaults() method.
@@ -303,7 +303,7 @@ class ArgparseApp:
         return self._shared_parsers.get(name)
 
     def register_command(
-            self, func: typing.Callable[argparse.Namespace, int],
+            self, func: typing.Callable[[argparse.Namespace], int],
             **kwargs) -> argparse.ArgumentParser:
         """Register a specific command.
 
