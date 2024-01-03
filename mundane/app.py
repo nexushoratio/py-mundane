@@ -14,6 +14,7 @@ and use that as a parents= parameter to another instance.
 
 import argparse
 import datetime
+import functools
 import inspect
 import logging
 import os
@@ -202,7 +203,6 @@ class ArgparseApp:
             'formatter_class': argparse.RawDescriptionHelpFormatter,
             'add_help': False,
         }
-        self._width = None
         if use_docstring_for_description:
             parser_args['description'] = Docstring(
                 use_docstring_for_description, self.width).description
@@ -214,7 +214,6 @@ class ArgparseApp:
             self.GLOBAL_FLAGS)
         self._global_flags.add_argument('-h', '--help', action='help')
         self._shared_parsers = dict()
-        self._subparser = None
 
         if use_log_mgr:
             self.register_global_flags([log_mgr])
@@ -230,17 +229,15 @@ class ArgparseApp:
         """The main parser for this class."""
         return self._parser
 
-    @property
+    @functools.cached_property
     def subparser(self) -> argparse._SubParsersAction:
         """The command subparser for this class."""
-        if not self._subparser:
-            self._subparser = self._parser.add_subparsers(
-                title='Commands',
-                dest='name',
-                metavar='<command>',
-                help='<command description>',
-                description='For more details: %(prog)s <command> --help')
-        return self._subparser
+        return self._parser.add_subparsers(
+            title='Commands',
+            dest='name',
+            metavar='<command>',
+            help='<command description>',
+            description='For more details: %(prog)s <command> --help')
 
     @property
     def global_flags(self) -> argparse._ArgumentGroup:
@@ -252,15 +249,13 @@ class ArgparseApp:
         """
         return self._global_flags
 
-    @property
+    @functools.cached_property
     def width(self) -> int:
         """Width of the current terminal.
 
         Used internally when formatting help.
         """
-        if not self._width:
-            self._width = shutil.get_terminal_size().columns
-        return self._width
+        return shutil.get_terminal_size().columns
 
     def new_shared_parser(self, name: str) -> argparse.ArgumentParser | None:
         """Register and return a new parser iff it does not already exist.
