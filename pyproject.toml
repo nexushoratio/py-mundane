@@ -49,6 +49,17 @@ disable = [
 [tool.pylint.miscellaneous]
 notes = ["FIXME"]
 
+[tool.mypy]
+files = 'mundane'
+disable_error_code = [
+  # TODO(#11): Fix these.
+  'arg-type',
+  'name-defined',
+  'override',
+  'return',
+  'var-annotated',
+]
+
 [tool.coverage.run]
 branch = true
 data_file = '.coverage/data_file'
@@ -71,6 +82,7 @@ sitepackages = True
 commands =
     python -m yapf -i -r mundane
     python -m pylint mundane
+    python -m mypy
     python -m coverage run
     python -m coverage report
     python -m coverage html
