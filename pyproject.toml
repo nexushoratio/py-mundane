@@ -55,7 +55,6 @@ disable_error_code = [
   # TODO(#11): Fix these.
   'arg-type',
   'name-defined',
-  'override',
   'return',
   'var-annotated',
 ]

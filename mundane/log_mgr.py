@@ -23,7 +23,8 @@ def mundane_global_flags(argp_app: 'mundane.ArgparserApp'):
     class LogAction(argparse.Action):  # pylint: disable=too-few-public-methods
         """Callback action to tweak log settings during flag parsing."""
 
-        def __call__(
+        # The following ignore is for the 'values' paramter.
+        def __call__(  # type: ignore[override]
                 self,
                 parser: argparse.ArgumentParser,
                 namespace: argparse.Namespace,
