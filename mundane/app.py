@@ -118,8 +118,8 @@ class ArgparseApp:
 
     This class attempts to make it easier to build applications using argparse
     for argument processing by providing a framework for a common approach,
-    without taking away any of argparse's abilities.  A basic understanding of
-    the argparse module will be useful.
+    without taking away any of the abilities of argparse.  A basic
+    understanding of the argparse module will be useful.
 
     We will try to use the term "flags" rather than "options".  As the
     argparse documentation points out: "users expect options to be optional".
