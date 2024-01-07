@@ -65,11 +65,7 @@ def activate():
     log_format = (
         '%(levelname).1s%(asctime)s: %(filename)s:%(lineno)d'
         '(%(funcName)s)] {%(name)s} %(message)s')
-    logging.basicConfig(
-        level=logging.INFO,
-        format=log_format,
-        filename=long_pathname,
-        force=True)
+    logging.basicConfig(format=log_format, filename=long_pathname, force=True)
 
     # best effort on symlink
     try:

@@ -191,3 +191,32 @@ class ActivateTest(unittest.TestCase):
         log_mgr.activate()
 
         self.assertTrue(dst.is_dir())
+
+    def test_flag_changes_logging_level(self):
+        root_logger = log_mgr.logging.getLogger()
+        root_logger.setLevel(0)
+
+        self.assertEqual(root_logger.getEffectiveLevel(), 0)
+
+        my_app = app.ArgparseApp()
+        my_app.register_global_flags([log_mgr])
+
+        my_app.parser.parse_args('-L warning'.split())
+
+        log_mgr.activate()
+
+        self.assertEqual(
+            root_logger.getEffectiveLevel(), log_mgr.logging.WARNING)
+
+    def test_no_flag_leaves_logging_level_alone(self):
+        root_logger = log_mgr.logging.getLogger()
+        root_logger.setLevel(17)
+
+        self.assertEqual(root_logger.getEffectiveLevel(), 17)
+
+        my_app = app.ArgparseApp()
+        my_app.register_global_flags([log_mgr])
+
+        log_mgr.activate()
+
+        self.assertEqual(root_logger.getEffectiveLevel(), 17)
