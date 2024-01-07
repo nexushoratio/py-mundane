@@ -51,9 +51,11 @@ notes = ["FIXME"]
 
 [tool.mypy]
 files = 'mundane'
+enable_incomplete_feature = [
+  'Unpack'
+]
 disable_error_code = [
   # TODO(#11): Fix these.
-  'arg-type',
   'name-defined',
   'return',
   'var-annotated',

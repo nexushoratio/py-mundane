@@ -33,6 +33,18 @@ import humanize
 from mundane import log_mgr
 
 
+class ArgparseKwargs(typing.TypedDict, total=False):
+    """Exists to make typing happy."""
+    prog: str
+    usage: str | None
+    epilog: str | None
+    formatter_class: 'argparse._FormatterClass'
+    fromfile_prefix_chars: str | None
+    add_help: bool
+    allow_abbrev: bool
+    description: str | None
+
+
 class Docstring:
     """A reflowed docstring.
 
@@ -188,7 +200,7 @@ class ArgparseApp:
             self,
             use_log_mgr: bool = False,
             use_docstring_for_description: typing.Any | None = None,
-            **kwargs):
+            **kwargs: typing.Unpack[ArgparseKwargs]):
         """Initialize with the application.
 
         Args:
@@ -199,7 +211,7 @@ class ArgparseApp:
             kwarg passed to ArgumentParser().
           kwargs: Passed directly to ArgumentParser().
         """
-        parser_args = {
+        parser_args: ArgparseKwargs = {
             'formatter_class': argparse.RawDescriptionHelpFormatter,
             'add_help': False,
         }
@@ -207,7 +219,7 @@ class ArgparseApp:
             parser_args['description'] = Docstring(
                 use_docstring_for_description, self.width).description
 
-        parser_args.update(kwargs)
+        parser_args.update(typing.cast(ArgparseKwargs, kwargs))
 
         self._parser = argparse.ArgumentParser(**parser_args)
         self._global_flags = self._parser.add_argument_group(
