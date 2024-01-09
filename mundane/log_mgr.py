@@ -6,6 +6,7 @@ To use the global flag, register using:
 To turn on the global log file, execute the following early in your program:
   log_mgr.activate()
 """
+from __future__ import annotations
 
 import argparse
 import datetime
@@ -15,9 +16,13 @@ import pwd
 import socket
 import sys
 import tempfile
+import typing
+
+if typing.TYPE_CHECKING:
+    from mundane import app
 
 
-def mundane_global_flags(argp_app: 'mundane.ArgparserApp'):
+def mundane_global_flags(argp_app: app.ArgparseApp):
     """Register global flags."""
 
     class LogAction(argparse.Action):  # pylint: disable=too-few-public-methods

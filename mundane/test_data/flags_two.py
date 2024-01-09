@@ -1,7 +1,16 @@
 """No global flags, yes shared flags, yes commands."""
 
+from __future__ import annotations
 
-def mundane_shared_flags(ctx: 'mundane.ArgparserApp'):
+import typing
+
+if typing.TYPE_CHECKING:
+    import argparse
+
+    from mundane import app
+
+
+def mundane_shared_flags(ctx: app.ArgparseApp):
     """Register shared flags."""
     parser = ctx.new_shared_parser('foo')
     if parser:
@@ -20,7 +29,7 @@ def mundane_shared_flags(ctx: 'mundane.ArgparserApp'):
         raise Exception('called again')  # pylint: disable=broad-exception-raised
 
 
-def mundane_commands(ctx: 'mundane.ArgparserApp'):
+def mundane_commands(ctx: app.ArgparseApp):
     """Register all module commands."""
     parser = ctx.register_command(ingest_new_material)
     parser.add_argument(
@@ -41,7 +50,7 @@ def mundane_commands(ctx: 'mundane.ArgparserApp'):
         help='Now or later. (default: %(default)s)')
 
 
-def ingest_new_material(args: 'argparse.Namespace') -> int:
+def ingest_new_material(args: argparse.Namespace) -> int:
     """Take in new material.
 
     Read the material and do something useful with it.

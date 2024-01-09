@@ -56,7 +56,6 @@ enable_incomplete_feature = [
 ]
 disable_error_code = [
   # TODO(#11): Fix these.
-  'name-defined',
   'return',
   'var-annotated',
 ]

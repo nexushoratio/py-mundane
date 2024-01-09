@@ -1,13 +1,22 @@
 """Yes global flag, no shared flags, yes commands."""
 
+from __future__ import annotations
 
-def mundane_global_flags(an_app: 'mundane.ArgparserApp'):
+import typing
+
+if typing.TYPE_CHECKING:
+    import argparse
+
+    from mundane import app
+
+
+def mundane_global_flags(an_app: app.ArgparseApp):
     """Register global flags for the application."""
     an_app.global_flags.add_argument(
         '--foo', action='store_true', help='Enable foo-ing.')
 
 
-def mundane_commands(an_app: 'mundane.ArgparserApp'):
+def mundane_commands(an_app: app.ArgparseApp):
     """Register all module commands."""
     an_app.register_command(generate_report)
 
@@ -24,16 +33,16 @@ def mundane_commands(an_app: 'mundane.ArgparserApp'):
 
 
 # Purposefully no docstring for testing.
-def generate_report(args: 'argparse.Namespace') -> int:
+def generate_report(args: argparse.Namespace) -> int:
     print('generating report using', args.name)
 
 
 # Purposefully no docstring for testing.
-def put_on_hat(args: 'argparse.Namespace') -> int:  # pragma: no cover
+def put_on_hat(args: argparse.Namespace) -> int:  # pragma: no cover
     del args
 
 
-def remove_shoes(args: 'argparse.Namespace') -> int:
+def remove_shoes(args: argparse.Namespace) -> int:
     """This will remove the shoes from the brakes."""
     print('removing shoes because', args.name)
     return 3
