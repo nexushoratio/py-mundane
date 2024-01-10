@@ -54,10 +54,6 @@ files = 'mundane'
 enable_incomplete_feature = [
   'Unpack'
 ]
-disable_error_code = [
-  # TODO(#11): Fix these.
-  'var-annotated',
-]
 
 [tool.coverage.run]
 branch = true

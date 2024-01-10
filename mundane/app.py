@@ -225,7 +225,7 @@ class ArgparseApp:
         self._global_flags = self._parser.add_argument_group(
             self.GLOBAL_FLAGS)
         self._global_flags.add_argument('-h', '--help', action='help')
-        self._shared_parsers = dict()
+        self._shared_parsers: dict[str, argparse.ArgumentParser] = dict()
 
         if use_log_mgr:
             self.register_global_flags([log_mgr])
