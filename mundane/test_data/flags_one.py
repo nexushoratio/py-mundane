@@ -33,13 +33,16 @@ def mundane_commands(an_app: app.ArgparseApp):
 
 
 # Purposefully no docstring for testing.
-def generate_report(args: argparse.Namespace) -> int:
+# And ignoring return because that is also being tested.
+def generate_report(args: argparse.Namespace) -> int:  # type: ignore[return]
     print('generating report using', args.name)
 
 
 # Purposefully no docstring for testing.
+# pylint: disable=missing-function-docstring
 def put_on_hat(args: argparse.Namespace) -> int:  # pragma: no cover
     del args
+    return 99
 
 
 def remove_shoes(args: argparse.Namespace) -> int:

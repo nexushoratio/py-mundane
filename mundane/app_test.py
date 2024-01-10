@@ -898,7 +898,7 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run(['process']))
 
-        self.assertIsNone(result.exception.code)
+        self.assertEqual(result.exception.code, 1)
 
     def test_dance(self):
         with self.assertRaises(
@@ -906,7 +906,7 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run(['dance']))
 
-        self.assertIsNone(result.exception.code)
+        self.assertEqual(result.exception.code, 0)
 
 
 if __name__ == '__main__':  # pragma: no cover

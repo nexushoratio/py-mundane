@@ -67,6 +67,7 @@ def ingest_new_material(args: argparse.Namespace) -> int:
 def process(args: 'argparse.Namespace') -> int:
     """Process random data."""
     del args
+    return 1
 
 
 def dance(args: 'argparse.Namespace') -> int:
@@ -76,3 +77,4 @@ def dance(args: 'argparse.Namespace') -> int:
     Rest of the content.
     """
     del args
+    return 0
