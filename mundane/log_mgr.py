@@ -25,7 +25,7 @@ if typing.TYPE_CHECKING:
 def mundane_global_flags(argp_app: app.ArgparseApp):
     """Register global flags."""
 
-    class LogAction(argparse.Action):  # pylint: disable=too-few-public-methods
+    class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods
         """Callback action to tweak log settings during flag parsing."""
 
         # The following ignore is for the 'values' paramter.
@@ -46,7 +46,7 @@ def mundane_global_flags(argp_app: app.ArgparseApp):
     argp_app.global_flags.add_argument(
         '-L',
         '--log-level',
-        action=LogAction,
+        action=LogLevel,
         help='Minimal log level',
         default=argparse.SUPPRESS,
         choices=choices)
