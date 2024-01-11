@@ -39,9 +39,9 @@ def mundane_global_flags(argp_app: app.ArgparseApp):
 
     # TODO: switch to getLevelNamesMapping() once minver = 3.11
     choices = tuple(
-        item[1].lower()
-        for item in sorted(logging._levelToName.items())  # pylint: disable=protected-access
-        if item[0])
+        name.lower()
+        for level, name in sorted(logging._levelToName.items())  # pylint: disable=protected-access
+        if level)
 
     argp_app.global_flags.add_argument(
         '-L',
