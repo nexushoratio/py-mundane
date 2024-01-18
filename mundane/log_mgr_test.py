@@ -47,7 +47,7 @@ class FlagsTest(unittest.TestCase):
                 SystemExit) as result, contextlib.redirect_stdout(stdout):
             my_app.parser.parse_args(['--help'])
 
-        levels = '{debug,info,warning,error,critical}'
+        levels = '{DEBUG,INFO,WARNING,ERROR,CRITICAL}'
         expected = inspect.cleandoc(
             fr"""usage:.*\[-h\]
          *\[-L {levels}\]
@@ -64,7 +64,7 @@ class FlagsTest(unittest.TestCase):
     def test_custom_logging_level_dash_h(self):
         # between info and warning
         log_mgr.logging.addLevelName(
-            (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'CUSTOM')
+            (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'Custom')
 
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
@@ -74,7 +74,7 @@ class FlagsTest(unittest.TestCase):
                 SystemExit) as result, contextlib.redirect_stdout(stdout):
             my_app.parser.parse_args(['--help'])
 
-        levels = '{.*,info,custom,warning,.*}'
+        levels = '{.*,INFO,Custom,WARNING,.*}'
         expected = inspect.cleandoc(
             fr"""usage:.*\[-h\]
          *\[-L {levels}\]
@@ -97,7 +97,7 @@ class FlagsTest(unittest.TestCase):
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
 
-        args = my_app.parser.parse_args('-L info'.split())
+        args = my_app.parser.parse_args('-L INFO'.split())
 
         self.assertEqual(
             root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
@@ -106,7 +106,7 @@ class FlagsTest(unittest.TestCase):
     def test_custom_changes_logging_level(self):
         # between info and warning
         log_mgr.logging.addLevelName(
-            (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'CUSTOM')
+            (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'Custom')
 
         root_logger = log_mgr.logging.getLogger()
         root_logger.setLevel(0)
@@ -116,7 +116,7 @@ class FlagsTest(unittest.TestCase):
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
 
-        my_app.parser.parse_args('-L custom'.split())
+        my_app.parser.parse_args('-L Custom'.split())
 
         self.assertGreater(
             root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
@@ -201,7 +201,7 @@ class ActivateTest(unittest.TestCase):
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
 
-        my_app.parser.parse_args('-L warning'.split())
+        my_app.parser.parse_args('-L WARNING'.split())
 
         log_mgr.activate()
 
