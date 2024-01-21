@@ -18,7 +18,7 @@ import sys
 import tempfile
 import typing
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from mundane import app
 
 
