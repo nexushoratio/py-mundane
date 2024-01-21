@@ -21,6 +21,10 @@ import typing
 if typing.TYPE_CHECKING:  # pragma: no cover
     from mundane import app
 
+LOG_FORMAT = (
+    '%(levelname).1s%(asctime)s: %(filename)s:%(lineno)d'
+    '(%(funcName)s)] {%(name)s} %(message)s')
+
 
 def mundane_global_flags(argp_app: app.ArgparseApp):
     """Register global flags."""
@@ -66,10 +70,7 @@ def activate():
     long_pathname = os.path.join(tempfile.gettempdir(), long_filename)
     short_pathname = os.path.join(tempfile.gettempdir(), short_filename)
 
-    log_format = (
-        '%(levelname).1s%(asctime)s: %(filename)s:%(lineno)d'
-        '(%(funcName)s)] {%(name)s} %(message)s')
-    logging.basicConfig(format=log_format, filename=long_pathname, force=True)
+    logging.basicConfig(format=LOG_FORMAT, filename=long_pathname, force=True)
 
     # best effort on symlink
     try:
