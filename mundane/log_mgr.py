@@ -26,20 +26,21 @@ LOG_FORMAT = (
     '(%(funcName)s)] {%(name)s} %(message)s')
 
 
+class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods
+    """Callback action to tweak log settings during flag parsing."""
+
+    # The following ignore is for the 'values' paramter.
+    def __call__(  # type: ignore[override]
+            self,
+            parser: argparse.ArgumentParser,
+            namespace: argparse.Namespace,
+            values: str,
+            option_string: str | None = None):
+        logging.getLogger().setLevel(values)
+
+
 def mundane_global_flags(argp_app: app.ArgparseApp):
     """Register global flags."""
-
-    class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods
-        """Callback action to tweak log settings during flag parsing."""
-
-        # The following ignore is for the 'values' paramter.
-        def __call__(  # type: ignore[override]
-                self,
-                parser: argparse.ArgumentParser,
-                namespace: argparse.Namespace,
-                values: str,
-                option_string: str | None = None):
-            logging.getLogger().setLevel(values)
 
     # TODO: switch to getLevelNamesMapping() once minver = 3.11
     choices = tuple(
