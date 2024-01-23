@@ -25,18 +25,67 @@ def setUpModule():
     tempfile.tempdir = tempfile.mkdtemp()
 
 
-class FlagsTest(unittest.TestCase):
+class BaseLogging(unittest.TestCase):
+    """Handle cases common to mucking around with a singleton."""
 
     def setUp(self):
+        self.prep_tty_vars()
+        self.prep_level_names()
+        self.prep_logger_handlers()
+        self.prep_sys_argv()
+
+    def prep_tty_vars(self):
+        """Explicitly control line wrapping of help.
+
+        By keeping columns fairly narrow, it makes writing tests fit < 80
+        chars.
+        """
         os.environ['COLUMNS'] = '60'
         os.environ['ROWS'] = '24'
 
+    def prep_level_names(self):
+        """Restore level names after each test."""
         orig_levels = log_mgr.logging._levelToName.copy()  # pylint: disable=protected-access
 
         def restore_orig_levels():
             log_mgr.logging._levelToName = orig_levels.copy()  # pylint: disable=protected-access
 
         self.addCleanup(restore_orig_levels)
+
+    def prep_logger_handlers(self):
+        """Restore known logging handlers after each test."""
+        logger = log_mgr.logging.getLogger()
+        orig_handlers = logger.handlers.copy()
+
+        def restore_orig_handlers():
+            for hdlr in logger.handlers:
+                if hdlr not in orig_handlers:
+                    logger.removeHandler(hdlr)
+                    hdlr.close()
+            for hdlr in orig_handlers:
+                if hdlr not in logger.handlers:
+                    logger.addHandler(hdlr)
+
+        self.addCleanup(restore_orig_handlers)
+
+    def prep_sys_argv(self):
+        """Set sys_argv[0] to something knowable to assist testing."""
+        orig_sys_argv0 = sys.argv[0]
+
+        def restore_sys_argv0():
+            sys.argv[0] = orig_sys_argv0
+
+        self.addCleanup(restore_sys_argv0)
+
+        # Keep argv well known so tests can control line wrapping.
+        sys.argv[0] = 'my_app'
+
+    def test_noop(self):
+        # This triggers certain paths in clean up so they do not bitrot.
+        pass
+
+
+class FlagsTest(BaseLogging):
 
     def test_default_dash_h(self):
         my_app = app.ArgparseApp()
@@ -49,7 +98,7 @@ class FlagsTest(unittest.TestCase):
 
         levels = '{DEBUG,INFO,WARNING,ERROR,CRITICAL}'
         expected = inspect.cleandoc(
-            fr"""usage:.*\[-h\]
+            fr"""usage: my_app \[-h\]
          *\[-L {levels}\]
 
         Global flags:
@@ -76,7 +125,7 @@ class FlagsTest(unittest.TestCase):
 
         levels = '{.*,INFO,Custom,WARNING,.*}'
         expected = inspect.cleandoc(
-            fr"""usage:.*\[-h\]
+            fr"""usage: my_app \[-h\]
          *\[-L {levels}\]
 
         Global flags:
@@ -122,35 +171,14 @@ class FlagsTest(unittest.TestCase):
             root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
 
 
-class ActivateTest(unittest.TestCase):
+class ActivateTest(BaseLogging):
 
     def setUp(self):
-        logger = log_mgr.logging.getLogger()
-        orig_handlers = logger.handlers.copy()
+        super().setUp()
 
-        def restore_orig_handlers():
-            for hdlr in logger.handlers:
-                if hdlr not in orig_handlers:
-                    logger.removeHandler(hdlr)
-                    hdlr.close()
-            for hdlr in orig_handlers:
-                if hdlr not in logger.handlers:
-                    logger.addHandler(hdlr)
-
-        self.addCleanup(restore_orig_handlers)
-
-        orig_sys_argv0 = sys.argv[0]
-
-        def restore_sys_argv0():
-            sys.argv[0] = orig_sys_argv0
-
-        self.addCleanup(restore_sys_argv0)
-
+        # In these tests, symlinks are created based upon argv0, so they do
+        # should be unique.
         sys.argv[0] = self.id()
-
-    def test_noop(self):
-        # This triggers other paths in clean up so they do not bitrot.
-        pass
 
     def test_correct_filename(self):
         root_logger = log_mgr.logging.getLogger()
