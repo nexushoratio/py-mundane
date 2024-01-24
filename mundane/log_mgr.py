@@ -36,7 +36,13 @@ class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods
             namespace: argparse.Namespace,
             values: str,
             option_string: str | None = None):
-        logging.getLogger().setLevel(values)
+        set_root_log_level(values)
+
+
+def set_root_log_level(level: str | None):
+    """Convenience function for setting the root logger level by name."""
+    if level is not None:
+        logging.getLogger().setLevel(level)
 
 
 def mundane_global_flags(argp_app: app.ArgparseApp):

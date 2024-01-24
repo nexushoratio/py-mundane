@@ -96,6 +96,25 @@ class BaseLogging(unittest.TestCase):
         pass
 
 
+class SetRootLoggingLevelTest(BaseLogging):
+
+    def test_with_string(self):
+        logger = log_mgr.logging.getLogger()
+        logger.setLevel(log_mgr.logging.WARNING)
+
+        log_mgr.set_root_log_level('INFO')
+
+        self.assertEqual(logger.level, log_mgr.logging.INFO)
+
+    def test_with_none(self):
+        logger = log_mgr.logging.getLogger()
+        logger.setLevel(log_mgr.logging.WARNING)
+
+        log_mgr.set_root_log_level(None)
+
+        self.assertEqual(logger.level, log_mgr.logging.WARNING)
+
+
 class FlagsTest(BaseLogging):
 
     def test_default_dash_h(self):
