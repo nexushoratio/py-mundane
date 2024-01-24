@@ -33,6 +33,7 @@ class BaseLogging(unittest.TestCase):
         self.prep_level_names()
         self.prep_logger_handlers()
         self.prep_sys_argv()
+        self.prep_root_logging_level()
 
     def prep_tty_vars(self):
         """Explicitly control line wrapping of help.
@@ -80,8 +81,18 @@ class BaseLogging(unittest.TestCase):
         # Keep argv well known so tests can control line wrapping.
         sys.argv[0] = 'my_app'
 
+    def prep_root_logging_level(self):
+        """Restore root logging level after each test."""
+        logger = log_mgr.logging.getLogger()
+        orig_level = logger.level
+
+        def restore_logger_level():
+            logger.level = orig_level
+
+        self.addCleanup(restore_logger_level)
+
     def test_noop(self):
-        # This triggers certain paths in clean up so they do not bitrot.
+        # This triggers certain code paths in clean up so they do not bitrot.
         pass
 
 
