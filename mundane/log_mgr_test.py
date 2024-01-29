@@ -143,7 +143,8 @@ class FlagsTest(BaseLogging):
     def test_custom_logging_level_dash_h(self):
         # between info and warning
         log_mgr.logging.addLevelName(
-            (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'Custom')
+            (log_mgr.logging.INFO + log_mgr.logging.WARNING + 2) // 2,
+            'Custom')
 
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
@@ -185,7 +186,7 @@ class FlagsTest(BaseLogging):
     def test_custom_changes_logging_level(self):
         # between info and warning
         log_mgr.logging.addLevelName(
-            (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'Custom')
+            (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'Xyzzy')
 
         root_logger = log_mgr.logging.getLogger()
         root_logger.setLevel(0)
@@ -195,7 +196,7 @@ class FlagsTest(BaseLogging):
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
 
-        my_app.parser.parse_args('-L Custom'.split())
+        my_app.parser.parse_args('-L Xyzzy'.split())
 
         self.assertGreater(
             root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
