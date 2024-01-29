@@ -96,6 +96,156 @@ class BaseLogging(unittest.TestCase):
         pass
 
 
+class LogLevelTest(BaseLogging):
+
+    def setUp(self):
+        super().setUp()
+        self.parser = log_mgr.argparse.ArgumentParser()
+        self.stdout = io.StringIO()
+
+    def test_action_only(self):
+        logger = log_mgr.logging.getLogger()
+        logger.setLevel(0)
+
+        self.parser.add_argument('-x', action=log_mgr.LogLevel)
+        self.assertEqual(logger.level, 0)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.parser.parse_args(['--help'])
+
+        expected = inspect.cleandoc(
+            r"""usage: my_app \[-h\] \[-x X\]
+
+        options:
+          -h, --help  show this help message and exit
+          -x X
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+        self.parser.parse_args('-x WARNING'.split())
+        self.assertEqual(logger.level, log_mgr.logging.WARNING)
+
+    def test_with_help(self):
+        logger = log_mgr.logging.getLogger()
+        logger.setLevel(log_mgr.logging.INFO)
+
+        self.parser.add_argument(
+            '-x', action=log_mgr.LogLevel, help='My help')
+        self.assertEqual(logger.level, log_mgr.logging.INFO)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.parser.parse_args(['--help'])
+
+        expected = inspect.cleandoc(
+            r"""usage: my_app \[-h\] \[-x X\]
+
+        options:
+          -h, --help  show this help message and exit
+          -x X        My help \(Default: INFO\)
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+        self.parser.parse_args('-x WARNING'.split())
+        self.assertEqual(logger.level, log_mgr.logging.WARNING)
+
+    def test_with_choices(self):
+        logger = log_mgr.logging.getLogger()
+        logger.setLevel(0)
+
+        self.parser.add_argument(
+            '-x', action=log_mgr.LogLevel, choices=('INFO', 'WARNING'))
+        self.assertEqual(logger.level, 0)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.parser.parse_args(['--help'])
+
+        expected = inspect.cleandoc(
+            r"""usage: my_app \[-h\] \[-x {INFO,WARNING}\]
+
+        options:
+          -h, --help         show this help message and exit
+          -x {INFO,WARNING}
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+        self.parser.parse_args('-x WARNING'.split())
+        self.assertEqual(logger.level, log_mgr.logging.WARNING)
+
+    def test_with_choices_and_help(self):
+        logger = log_mgr.logging.getLogger()
+        logger.setLevel(log_mgr.logging.INFO)
+
+        self.parser.add_argument(
+            '-x',
+            action=log_mgr.LogLevel,
+            choices=('INFO', 'WARNING', 'CRITICAL'),
+            help='My other help')
+        self.assertEqual(logger.level, log_mgr.logging.INFO)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.parser.parse_args(['--help'])
+
+        expected = inspect.cleandoc(
+            r"""usage: my_app \[-h\] \[-x {INFO,WARNING,CRITICAL}\]
+
+        options:
+          -h, --help            show this help message and exit
+          -x {INFO,WARNING,CRITICAL}
+                                My other help \(Default: INFO\)
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+        self.parser.parse_args('-x CRITICAL'.split())
+        self.assertEqual(logger.level, log_mgr.logging.CRITICAL)
+
+    def test_with_default_and_help(self):
+        logger = log_mgr.logging.getLogger()
+        logger.setLevel(log_mgr.logging.WARNING)
+
+        self.parser.add_argument(
+            '-x',
+            action=log_mgr.LogLevel,
+            help='My unusual help',
+            default=log_mgr.argparse.SUPPRESS,
+            log_level='WARNING')
+        self.assertEqual(logger.level, log_mgr.logging.WARNING)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.parser.parse_args(['--help'])
+
+        expected = inspect.cleandoc(
+            r"""usage: my_app \[-h\] \[-x X\]
+
+        options:
+          -h, --help  show this help message and exit
+          -x X        My unusual help \(Default: WARNING\)
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+        self.parser.parse_args('-x CRITICAL'.split())
+        self.assertEqual(logger.level, log_mgr.logging.CRITICAL)
+
+
 class SetRootLoggingLevelTest(BaseLogging):
 
     def test_with_string(self):

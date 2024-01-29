@@ -29,6 +29,28 @@ LOG_FORMAT = (
 class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods
     """Callback action to tweak log settings during flag parsing."""
 
+    def __init__(self, *args, log_level: str | None = None, **kwargs):
+        """Thin Action wrapper.
+
+        For this action, the default is set via 'log_level' so that the caller
+        can use 'argparse.SUPPRESS' to not pass it along via parse_args().
+
+        Args:
+          args: Passed directly to argparse.Action.
+          log_level: Default logging level for the root logger.
+          kwargs: Passed directly to argparse.Action.
+        """
+        self.log_level = log_level
+        if self.log_level is None:
+            root_logger = logging.getLogger()
+            self.log_level = logging.getLevelName(
+                root_logger.getEffectiveLevel())
+
+        if 'help' in kwargs:
+            kwargs['help'] += ' (Default: %(_log_level)s)'
+
+        super().__init__(*args, **kwargs)
+
     # The following ignore is for the 'values' paramter.
     def __call__(  # type: ignore[override]
             self,
@@ -37,6 +59,16 @@ class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods
             values: str,
             option_string: str | None = None):
         set_root_log_level(values)
+
+    @property
+    def log_level(self):
+        """The default root logging level."""
+        return self._log_level
+
+    @log_level.setter
+    def log_level(self, value):
+        self._log_level = value
+        set_root_log_level(self._log_level)
 
 
 def set_root_log_level(level: str | None):
