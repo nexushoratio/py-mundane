@@ -268,14 +268,19 @@ class ActivateTest(BaseLogging):
             root_logger.getEffectiveLevel(), log_mgr.logging.WARNING)
 
     def test_no_flag_leaves_logging_level_alone(self):
-        root_logger = log_mgr.logging.getLogger()
-        root_logger.setLevel(17)
+        magic_level = 17
 
-        self.assertEqual(root_logger.getEffectiveLevel(), 17)
+        root_logger = log_mgr.logging.getLogger()
+        root_logger.setLevel(magic_level)
+        # A shame the level name is not add automatically
+        log_mgr.logging.addLevelName(
+            magic_level, log_mgr.logging.getLevelName(magic_level))
+
+        self.assertEqual(root_logger.getEffectiveLevel(), magic_level)
 
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
 
         log_mgr.activate()
 
-        self.assertEqual(root_logger.getEffectiveLevel(), 17)
+        self.assertEqual(root_logger.getEffectiveLevel(), magic_level)
