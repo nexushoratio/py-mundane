@@ -422,7 +422,7 @@ class ActivateTest(BaseLogging):
 
         root_logger = log_mgr.logging.getLogger()
         root_logger.setLevel(magic_level)
-        # A shame the level name is not add automatically
+        # A shame the level name is not added automatically
         log_mgr.logging.addLevelName(
             magic_level, log_mgr.logging.getLevelName(magic_level))
 

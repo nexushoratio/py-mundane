@@ -1,7 +1,7 @@
 """Provide a reasonable set of defaults for logging.
 
 To use the global flag, register using:
-   ArgparseApp().register_global_flags(logmgr)
+   ArgparseApp().register_global_flags(log_mgr)
 
 To turn on the global log file, execute the following early in your program:
   log_mgr.activate()
