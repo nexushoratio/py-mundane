@@ -12,11 +12,15 @@ import argparse
 import datetime
 import logging
 import os
+import pathlib
+import platform
 import pwd
 import socket
 import sys
 import tempfile
 import typing
+
+import psutil
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from mundane import app
@@ -24,6 +28,74 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 LOG_FORMAT = (
     '%(levelname).1s%(asctime)s: %(filename)s:%(lineno)d'
     '(%(funcName)s)] {%(name)s} %(message)s')
+
+
+class LogHandler(logging.FileHandler):
+    """Logging handler that writes to a directory.
+
+    Features:
+    * It always defers opening the logs until the first write.
+    * It uses a filename that should be unique across clusters.
+    * It provides a convenience symlink when possible.
+    * The output directory can be set before the first log is written.
+
+    File names use the pattern below.  They should be as unique as hostnames
+    across a cluster.  With the pattern, they should be easy to identify for
+    asynchronous processing and to use the names as unique keys.
+
+    A convenience symlink is also created that typically ends up pointing to
+    the most recent invocation.  This makes it easy to use TAB-key expansion
+    to find the current/most-recent log file from the shell.  Obviously user
+    permissions could prevent the symlink if files are logged to a directory
+    shared by users with a sticky-bit set (e.g., /tmp).
+
+    argv[0].log -> argv[0].log.$HOST.$USER.$DATETIME.$PID
+    """
+
+    def __init__(self):
+        process = psutil.Process()
+
+        # The following handles 'python foo.py' better than process.name()
+        progname = pathlib.Path(sys.argv[0]).name
+        now = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+
+        self.short_filename = f'{progname}.log'
+        self.long_filename = (
+            f'{self.short_filename}.{platform.node()}'
+            f'.{process.username()}.{now}.{process.pid}')
+        self.output_dir = tempfile.gettempdir()
+
+        super().__init__(self._base_path, delay=True)
+
+    @property
+    def output_dir(self):
+        """Where log files are written."""
+        return self._output_dir
+
+    @output_dir.setter
+    def output_dir(self, value):
+        self._output_dir = value
+        self.symlink_path = pathlib.Path(
+            self._output_dir, self.short_filename).absolute()
+
+        self._base_path = pathlib.Path(self._output_dir,
+                                       self.long_filename).absolute()
+        self.baseFilename = str(self._base_path)
+
+    def _open(self):
+        handle = super()._open()
+
+        # best effort on symlink
+        try:
+            self.symlink_path.unlink(missing_ok=True)
+            self.symlink_path.symlink_to(self.baseFilename)
+        except OSError:
+            pass
+
+        return handle
+
+
+HANDLER = LogHandler()
 
 
 class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods

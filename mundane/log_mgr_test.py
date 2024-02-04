@@ -96,6 +96,87 @@ class BaseLogging(unittest.TestCase):
         pass
 
 
+class LogHandlerTest(BaseLogging):
+
+    def setUp(self):
+        super().setUp()
+
+        # In these tests, symlinks are created based upon argv0, so they
+        # should be unique.
+        sys.argv[0] = self.id()
+
+        self.logger = log_mgr.logging.getLogger(self.id())
+        self.logger.propagate = False
+        self.logger.setLevel('INFO')
+
+        self.handler = log_mgr.LogHandler()
+        self.logger.addHandler(self.handler)
+
+    def check_properties(self, output_dir: str):
+        """Shared checks."""
+        out_dir = pathlib.PurePath(self.handler.output_dir)
+
+        self.assertTrue(out_dir.match(output_dir))
+        self.assertEqual(self.handler.short_filename, f'{self.id()}.log')
+        # app.log.host.user.date-time.pid
+        pattern = fr'{self.id()}\.log\.\w+\.\w+\.\d{{8}}-\d{{6}}\.\d+$'
+        self.assertRegex(self.handler.long_filename, pattern)
+
+        self.assertEqual(
+            self.handler.symlink_path,
+            out_dir.joinpath(self.handler.short_filename))
+        self.assertEqual(
+            self.handler.baseFilename,
+            str(out_dir.joinpath(self.handler.long_filename)))
+
+    def test_default_properties(self):
+        self.check_properties(tempfile.gettempdir())
+
+    def test_set_output_dir(self):
+        out = tempfile.mkdtemp()
+        self.handler.output_dir = out
+
+        self.check_properties(out)
+
+    def test_output_deferred_until_first_write(self):
+        symlink = self.handler.symlink_path
+        full_path = pathlib.Path(self.handler.baseFilename)
+
+        self.assertFalse(symlink.exists(), 'should not exist yet')
+        self.assertFalse(full_path.exists(), 'should not exist yet')
+
+        self.logger.info('Logged from %s', self.id())
+
+        self.assertTrue(symlink.exists(), 'should now exist')
+        self.assertTrue(full_path.exists(), 'should now exist')
+
+    def test_symlink_dst_created(self):
+        self.logger.info('Logged from %s', self.id())
+
+        self.assertTrue(
+            self.handler.symlink_path.is_symlink(), 'should now exist')
+
+    def test_symlink_dst_already_exists(self):
+        self.handler.symlink_path.touch()
+        self.assertTrue(
+            self.handler.symlink_path.exists(), 'exists sanity check')
+        self.assertFalse(
+            self.handler.symlink_path.is_symlink(), 'symlink sanity check')
+
+        self.logger.info('Logged from %s', self.id())
+
+        self.assertTrue(self.handler.symlink_path.is_symlink())
+
+    def test_symlink_dst_is_directory(self):
+        self.handler.symlink_path.mkdir()
+        self.assertTrue(
+            self.handler.symlink_path.is_dir(), 'dir sanity check')
+
+        self.logger.info('Logged from %s', self.id())
+
+        self.assertTrue(self.handler.symlink_path.is_dir(), 'still a dir')
+
+
 class LogLevelTest(BaseLogging):
 
     def setUp(self):
