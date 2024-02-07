@@ -34,6 +34,7 @@ class BaseLogging(unittest.TestCase):
         self.prep_logger_handlers()
         self.prep_sys_argv()
         self.prep_root_logging_level()
+        self.prep_global_handler()
 
     def prep_tty_vars(self):
         """Explicitly control line wrapping of help.
@@ -90,6 +91,15 @@ class BaseLogging(unittest.TestCase):
             logger.level = orig_level
 
         self.addCleanup(restore_logger_level)
+
+    def prep_global_handler(self):
+        """Restore log_mgr.HANDLER to default state."""
+        out_dir = log_mgr.HANDLER.output_dir
+
+        def restore_output_dir():
+            log_mgr.HANDLER.output_dir = out_dir
+
+        self.addCleanup(restore_output_dir)
 
     def test_noop(self):
         # This triggers certain code paths in clean up so they do not bitrot.
@@ -344,6 +354,102 @@ class LogLevelTest(BaseLogging):
 
         self.parser.parse_args('-x CRITICAL'.split())
         self.assertEqual(logger.level, log_mgr.logging.CRITICAL)
+
+
+class LogDirTest(BaseLogging):
+
+    def setUp(self):
+        super().setUp()
+        self.parser = log_mgr.argparse.ArgumentParser()
+        self.stdout = io.StringIO()
+        self.handler = log_mgr.HANDLER
+        self.handler.output_dir = tempfile.mkdtemp()
+
+        # Different length of tempdir can cause wrapping issues in help output
+        os.environ['COLUMNS'] = f'{40 + len(self.handler.output_dir)}'
+
+    def test_action_only(self):
+        orig_out_dir = self.handler.output_dir
+
+        self.parser.add_argument('-d', action=log_mgr.LogDir)
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.parser.parse_args(['--help'])
+
+        expected = inspect.cleandoc(
+            r"""usage: my_app \[-h\] \[-d D\]
+
+        options:
+          -h, --help  show this help message and exit
+          -d D
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+        self.assertEqual(self.handler.output_dir, orig_out_dir)
+
+        self.parser.parse_args(f'-d path/to/{self.id()}'.split())
+
+        self.assertEqual(self.handler.output_dir, f'path/to/{self.id()}')
+
+    def test_with_help(self):
+        orig_out_dir = self.handler.output_dir
+        self.parser.add_argument(
+            '-d', action=log_mgr.LogDir, help='My dir help')
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.parser.parse_args(['--help'])
+
+        expected = inspect.cleandoc(
+            fr"""usage: my_app \[-h\] \[-d D\]
+
+        options:
+          -h, --help  show this help message and exit
+          -d D        My dir help \(Default: {orig_out_dir}\)
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+    def test_with_default_and_help(self):
+        out_dir = f'/path/to/{self.id()}'
+        help_msg = 'My usual dir help'
+        os.environ['COLUMNS'] = f'{30 + len(help_msg) + len(out_dir)}'
+
+        self.parser.add_argument(
+            '-d',
+            action=log_mgr.LogDir,
+            help=help_msg,
+            default=log_mgr.argparse.SUPPRESS,
+            log_dir=out_dir)
+
+        self.assertEqual(
+            self.handler.output_dir, out_dir,
+            'Registering the flag was enough to change the directory.')
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout):
+            self.parser.parse_args(['--help'])
+
+        expected = inspect.cleandoc(
+            fr"""usage: my_app \[-h\] \[-d D\]
+
+        options:
+          -h, --help  show this help message and exit
+          -d D        {help_msg} \(Default: {out_dir}\)
+
+        """)
+        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(result.exception.code, 0)
+
+        self.parser.parse_args('-d dir/xyzzy'.split())
+
+        self.assertEqual(self.handler.output_dir, 'dir/xyzzy')
 
 
 class SetRootLoggingLevelTest(BaseLogging):

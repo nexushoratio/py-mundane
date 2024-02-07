@@ -143,6 +143,41 @@ class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods
         set_root_log_level(self._log_level)
 
 
+class LogDir(argparse.Action):
+    """Callback action to handler setting the log output directory.
+
+    This expects to work with the global LogHandler instance from this module.
+    """
+
+    def __init__(self, *args, log_dir: str | None = None, **kwargs):
+        self.log_dir = log_dir
+        if self.log_dir is None:
+            self.log_dir = HANDLER.output_dir
+        if 'help' in kwargs:
+            kwargs['help'] += ' (Default: %(_log_dir)s)'
+        super().__init__(*args, **kwargs)
+
+    # The following ignore is for the 'values' parameter.
+    def __call__(  # type: ignore[override]
+            self,
+            parser: argparse.ArgumentParser,
+            namespace: argparse.Namespace,
+            values: str,
+            option_string: str | None = None):
+        self.log_dir = values
+
+    @property
+    def log_dir(self):
+        """The default logging directory."""
+        return self._log_dir
+
+    @log_dir.setter
+    def log_dir(self, value):
+        self._log_dir = value
+        if self._log_dir is not None:
+            HANDLER.output_dir = self._log_dir
+
+
 def set_root_log_level(level: str | None):
     """Convenience function for setting the root logger level by name."""
     if level is not None:
