@@ -177,6 +177,25 @@ class LogHandlerTest(BaseLogging):
         self.assertTrue(self.handler.symlink_path.is_dir(), 'still a dir')
 
 
+class GlobalHandlerTest(BaseLogging):
+
+    def test_properties(self):
+        handler = log_mgr.HANDLER
+
+        out_dir = pathlib.PurePath(handler.output_dir)
+
+        self.assertRegex(handler.short_filename, r'^.*\.log$')
+        # app.log.host.user.date-time.pid
+        pattern = r'^.*\.log\.\w+\.\w+\.\d{8}-\d{6}\.\d+$'
+        self.assertRegex(handler.long_filename, pattern)
+
+        self.assertEqual(
+            handler.symlink_path, out_dir.joinpath(handler.short_filename))
+        self.assertEqual(
+            handler.baseFilename,
+            str(out_dir.joinpath(handler.long_filename)))
+
+
 class LogLevelTest(BaseLogging):
 
     def setUp(self):
