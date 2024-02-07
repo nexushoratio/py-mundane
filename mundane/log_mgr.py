@@ -123,7 +123,7 @@ class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods
 
         super().__init__(*args, **kwargs)
 
-    # The following ignore is for the 'values' paramter.
+    # The following ignore is for the 'values' parameter.
     def __call__(  # type: ignore[override]
             self,
             parser: argparse.ArgumentParser,
