@@ -11,11 +11,8 @@ from __future__ import annotations
 import argparse
 import datetime
 import logging
-import os
 import pathlib
 import platform
-import pwd
-import socket
 import sys
 import tempfile
 import typing
@@ -203,24 +200,4 @@ def mundane_global_flags(argp_app: app.ArgparseApp):
 
 def activate():
     """Activate this logfile setup."""
-    # argv[0] -> argv[0].$HOST.$USER.$DATETIME.$PID
-
-    progname = os.path.basename(sys.argv[0])
-    now = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
-
-    short_filename = f'{progname}.log'
-    long_filename = (
-        f'{short_filename}.{socket.gethostname()}'
-        f'.{pwd.getpwuid(os.getuid())[0]}.{now}.{os.getpid()}')
-
-    long_pathname = os.path.join(tempfile.gettempdir(), long_filename)
-    short_pathname = os.path.join(tempfile.gettempdir(), short_filename)
-
-    logging.basicConfig(format=LOG_FORMAT, filename=long_pathname, force=True)
-
-    # best effort on symlink
-    try:
-        os.unlink(short_pathname)
-    except OSError:
-        pass
-    os.symlink(long_pathname, short_pathname)
+    logging.basicConfig(format=LOG_FORMAT, handlers=[HANDLER], force=True)

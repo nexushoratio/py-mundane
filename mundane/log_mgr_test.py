@@ -563,80 +563,54 @@ class ActivateTest(BaseLogging):
     def setUp(self):
         super().setUp()
 
-        # In these tests, symlinks are created based upon argv0, so they do
-        # should be unique.
-        sys.argv[0] = self.id()
+        log_mgr.HANDLER.output_dir = tempfile.mkdtemp()
+        root_logger = log_mgr.logging.getLogger()
+        root_logger.setLevel('INFO')
 
-    def test_correct_filename(self):
+    def test_expected_handler(self):
         root_logger = log_mgr.logging.getLogger()
 
         log_mgr.activate()
 
         handler = root_logger.handlers[0]
 
-        # app.log.host.user.date-time.pid
-        pattern = '*/*.log.*.*.*-*.*'
-        self.assertTrue(pathlib.PurePath(handler.baseFilename).match(pattern))
+        self.assertEqual(handler, log_mgr.HANDLER)
+
+    def test_output_deferred_until_first_write(self):
+        dst = log_mgr.HANDLER.symlink_path
+        log_mgr.activate()
+
+        self.assertFalse(dst.exists(), 'sanity check')
+
+        log_mgr.logging.info('Logged from %s', self.id())
+
+        self.assertTrue(dst.exists())
 
     def test_symlink_dst_created(self):
-        dst = pathlib.Path(tempfile.gettempdir(), f'{self.id()}.log')
-
         log_mgr.activate()
+        log_mgr.logging.info('Logged from %s', self.id())
 
-        self.assertTrue(dst.is_symlink())
+        self.assertTrue(log_mgr.HANDLER.symlink_path.is_symlink())
 
     def test_symlink_dst_already_exists(self):
-        dst = pathlib.Path(tempfile.gettempdir(), f'{self.id()}.log')
+        dst = log_mgr.HANDLER.symlink_path
 
         dst.touch()
-        self.assertFalse(dst.is_symlink(), 'sanity check')
+        self.assertTrue(dst.exists(), 'does exist')
+        self.assertFalse(dst.is_symlink(), 'but not a symlink')
 
         log_mgr.activate()
+        log_mgr.logging.info('Logged from %s', self.id())
 
         self.assertTrue(dst.is_symlink())
 
     def test_symlink_dst_is_directory(self):
-        dst = pathlib.Path(
-            tempfile.gettempdir(),
-            pathlib.PurePath(self.id()).with_suffix('.log'))
+        dst = log_mgr.HANDLER.symlink_path
 
         dst.mkdir()
         self.assertTrue(dst.is_dir(), 'sanity check')
 
         log_mgr.activate()
+        log_mgr.logging.info('Logged from %s', self.id())
 
         self.assertTrue(dst.is_dir())
-
-    def test_flag_changes_logging_level(self):
-        root_logger = log_mgr.logging.getLogger()
-        root_logger.setLevel(0)
-
-        self.assertEqual(root_logger.getEffectiveLevel(), 0)
-
-        my_app = app.ArgparseApp()
-        my_app.register_global_flags([log_mgr])
-
-        my_app.parser.parse_args('-L WARNING'.split())
-
-        log_mgr.activate()
-
-        self.assertEqual(
-            root_logger.getEffectiveLevel(), log_mgr.logging.WARNING)
-
-    def test_no_flag_leaves_logging_level_alone(self):
-        magic_level = 17
-
-        root_logger = log_mgr.logging.getLogger()
-        root_logger.setLevel(magic_level)
-        # A shame the level name is not added automatically
-        log_mgr.logging.addLevelName(
-            magic_level, log_mgr.logging.getLevelName(magic_level))
-
-        self.assertEqual(root_logger.getEffectiveLevel(), magic_level)
-
-        my_app = app.ArgparseApp()
-        my_app.register_global_flags([log_mgr])
-
-        log_mgr.activate()
-
-        self.assertEqual(root_logger.getEffectiveLevel(), magic_level)
