@@ -1,12 +1,12 @@
 """Tests for log_mgr.py"""
 
 import contextlib
-import inspect
 import io
 import os
 import pathlib
 import sys
 import tempfile
+import textwrap
 import unittest
 
 from mundane import app
@@ -23,6 +23,15 @@ def setUpModule():
     unittest.addModuleCleanup(restore_tempdir)
 
     tempfile.tempdir = tempfile.mkdtemp()
+
+
+def munge_expected(old_s: str) -> str:
+    """Modify a multiple line string in a standard way.
+
+    * Run through textwrap.dedent()
+    * Strip leading newline
+    """
+    return textwrap.dedent(old_s).lstrip()
 
 
 class BaseLogging(unittest.TestCase):
@@ -225,15 +234,15 @@ class LogLevelTest(BaseLogging):
                     self.stdout):
             self.parser.parse_args(['--help'])
 
-        expected = inspect.cleandoc(
-            r"""usage: my_app \[-h\] \[-x X\]
+        expected = munge_expected(
+            """
+            usage: my_app [-h] [-x X]
 
-        options:
-          -h, --help  show this help message and exit
-          -x X
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            options:
+              -h, --help  show this help message and exit
+              -x X
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
         self.parser.parse_args('-x WARNING'.split())
@@ -252,15 +261,15 @@ class LogLevelTest(BaseLogging):
                     self.stdout):
             self.parser.parse_args(['--help'])
 
-        expected = inspect.cleandoc(
-            r"""usage: my_app \[-h\] \[-x X\]
+        expected = munge_expected(
+            """
+            usage: my_app [-h] [-x X]
 
-        options:
-          -h, --help  show this help message and exit
-          -x X        My help \(Default: INFO\)
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            options:
+              -h, --help  show this help message and exit
+              -x X        My help (Default: INFO)
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
         self.parser.parse_args('-x WARNING'.split())
@@ -279,15 +288,15 @@ class LogLevelTest(BaseLogging):
                     self.stdout):
             self.parser.parse_args(['--help'])
 
-        expected = inspect.cleandoc(
-            r"""usage: my_app \[-h\] \[-x {INFO,WARNING}\]
+        expected = munge_expected(
+            """
+            usage: my_app [-h] [-x {INFO,WARNING}]
 
-        options:
-          -h, --help         show this help message and exit
-          -x {INFO,WARNING}
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            options:
+              -h, --help         show this help message and exit
+              -x {INFO,WARNING}
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
         self.parser.parse_args('-x WARNING'.split())
@@ -309,16 +318,16 @@ class LogLevelTest(BaseLogging):
                     self.stdout):
             self.parser.parse_args(['--help'])
 
-        expected = inspect.cleandoc(
-            r"""usage: my_app \[-h\] \[-x {INFO,WARNING,CRITICAL}\]
+        expected = munge_expected(
+            """
+            usage: my_app [-h] [-x {INFO,WARNING,CRITICAL}]
 
-        options:
-          -h, --help            show this help message and exit
-          -x {INFO,WARNING,CRITICAL}
-                                My other help \(Default: INFO\)
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            options:
+              -h, --help            show this help message and exit
+              -x {INFO,WARNING,CRITICAL}
+                                    My other help (Default: INFO)
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
         self.parser.parse_args('-x CRITICAL'.split())
@@ -341,15 +350,15 @@ class LogLevelTest(BaseLogging):
                     self.stdout):
             self.parser.parse_args(['--help'])
 
-        expected = inspect.cleandoc(
-            r"""usage: my_app \[-h\] \[-x X\]
+        expected = munge_expected(
+            """
+            usage: my_app [-h] [-x X]
 
-        options:
-          -h, --help  show this help message and exit
-          -x X        My unusual help \(Default: WARNING\)
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            options:
+              -h, --help  show this help message and exit
+              -x X        My unusual help (Default: WARNING)
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
         self.parser.parse_args('-x CRITICAL'.split())
@@ -378,15 +387,15 @@ class LogDirTest(BaseLogging):
                     self.stdout):
             self.parser.parse_args(['--help'])
 
-        expected = inspect.cleandoc(
-            r"""usage: my_app \[-h\] \[-d D\]
+        expected = munge_expected(
+            """
+            usage: my_app [-h] [-d D]
 
-        options:
-          -h, --help  show this help message and exit
-          -d D
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            options:
+              -h, --help  show this help message and exit
+              -d D
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
         self.assertEqual(self.handler.output_dir, orig_out_dir)
 
@@ -404,15 +413,15 @@ class LogDirTest(BaseLogging):
                     self.stdout):
             self.parser.parse_args(['--help'])
 
-        expected = inspect.cleandoc(
-            fr"""usage: my_app \[-h\] \[-d D\]
+        expected = munge_expected(
+            f"""
+            usage: my_app [-h] [-d D]
 
-        options:
-          -h, --help  show this help message and exit
-          -d D        My dir help \(Default: {orig_out_dir}\)
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            options:
+              -h, --help  show this help message and exit
+              -d D        My dir help (Default: {orig_out_dir})
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
     def test_with_default_and_help(self):
@@ -436,15 +445,15 @@ class LogDirTest(BaseLogging):
                     self.stdout):
             self.parser.parse_args(['--help'])
 
-        expected = inspect.cleandoc(
-            fr"""usage: my_app \[-h\] \[-d D\]
+        expected = munge_expected(
+            f"""
+            usage: my_app [-h] [-d D]
 
-        options:
-          -h, --help  show this help message and exit
-          -d D        {help_msg} \(Default: {out_dir}\)
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            options:
+              -h, --help  show this help message and exit
+              -d D        {help_msg} (Default: {out_dir})
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
         self.parser.parse_args('-d dir/xyzzy'.split())
@@ -483,17 +492,18 @@ class FlagsTest(BaseLogging):
             my_app.parser.parse_args(['--help'])
 
         levels = '{DEBUG,INFO,WARNING,ERROR,CRITICAL}'
-        expected = inspect.cleandoc(
-            fr"""usage: my_app \[-h\]
-         *\[-L {levels}\]
+        expected = munge_expected(
+            f"""
+            usage: my_app [-h]
+                          [-L {levels}]
 
-        Global flags:
-          -h, --help
-          -L {levels}, --log-level {levels}
-         *Minimal log level
-
-        """)
-        self.assertRegex(stdout.getvalue(), expected)
+            Global flags:
+              -h, --help
+              -L {levels}, --log-level {levels}
+                                    Minimal log level (Default:
+                                    WARNING)
+            """)
+        self.assertEqual(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
     def test_custom_logging_level_dash_h(self):
@@ -510,18 +520,19 @@ class FlagsTest(BaseLogging):
                 SystemExit) as result, contextlib.redirect_stdout(stdout):
             my_app.parser.parse_args(['--help'])
 
-        levels = '{.*,INFO,Custom,WARNING,.*}'
-        expected = inspect.cleandoc(
-            fr"""usage: my_app \[-h\]
-         *\[-L {levels}\]
+        levels = '{DEBUG,INFO,Custom,WARNING,ERROR,CRITICAL}'
+        expected = munge_expected(
+            f"""
+            usage: my_app [-h]
+                          [-L {levels}]
 
-        Global flags:
-          -h, --help
-          -L {levels}, --log-level {levels}
-         *Minimal log level
-
-        """)
-        self.assertRegex(stdout.getvalue(), expected)
+            Global flags:
+              -h, --help
+              -L {levels}, --log-level {levels}
+                                    Minimal log level (Default:
+                                    WARNING)
+            """)
+        self.assertEqual(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
     def test_default_changes_logging_level(self):
