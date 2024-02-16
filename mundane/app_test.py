@@ -349,10 +349,13 @@ class ArgparseAppParsingWithLogMgrTest(unittest.TestCase):
 
         expected = inspect.cleandoc(
             r"""usage:.*\[-h\] \[-L {.*}\]
+            *\[--log-dir LOG_DIR\]
 
         Global flags:
           -h, --help
           -L {.*}, --log-level {.*}
+               *Minimal log level \(.*\)
+          --log-dir LOG_DIR *Logging directory \(.*\)
 
         """)
         self.assertRegex(self.stdout.getvalue(), expected)

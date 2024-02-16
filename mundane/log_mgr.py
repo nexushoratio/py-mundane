@@ -197,6 +197,12 @@ def mundane_global_flags(argp_app: app.ArgparseApp):
         default=argparse.SUPPRESS,
         choices=choices)
 
+    argp_app.global_flags.add_argument(
+        '--log-dir',
+        action=LogDir,
+        help='Logging directory',
+        default=argparse.SUPPRESS)
+
 
 def activate():
     """Activate this logfile setup."""

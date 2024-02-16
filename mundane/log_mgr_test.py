@@ -482,6 +482,11 @@ class SetRootLoggingLevelTest(BaseLogging):
 
 class FlagsTest(BaseLogging):
 
+    def setUp(self):
+        super().setUp()
+        log_mgr.HANDLER.output_dir = str(
+            pathlib.PurePath('well', 'known', 'path'))
+
     def test_default_dash_h(self):
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
@@ -496,12 +501,15 @@ class FlagsTest(BaseLogging):
             f"""
             usage: my_app [-h]
                           [-L {levels}]
+                          [--log-dir LOG_DIR]
 
             Global flags:
               -h, --help
               -L {levels}, --log-level {levels}
                                     Minimal log level (Default:
                                     WARNING)
+              --log-dir LOG_DIR     Logging directory (Default:
+                                    well/known/path)
             """)
         self.assertEqual(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
@@ -525,12 +533,15 @@ class FlagsTest(BaseLogging):
             f"""
             usage: my_app [-h]
                           [-L {levels}]
+                          [--log-dir LOG_DIR]
 
             Global flags:
               -h, --help
               -L {levels}, --log-level {levels}
                                     Minimal log level (Default:
                                     WARNING)
+              --log-dir LOG_DIR     Logging directory (Default:
+                                    well/known/path)
             """)
         self.assertEqual(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
@@ -567,6 +578,16 @@ class FlagsTest(BaseLogging):
 
         self.assertGreater(
             root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
+
+    def test_log_dir_flag(self):
+        my_app = app.ArgparseApp()
+        my_app.register_global_flags([log_mgr])
+
+        self.assertEqual(log_mgr.HANDLER.output_dir, 'well/known/path')
+
+        my_app.parser.parse_args('--log-dir road/to/nowhere'.split())
+
+        self.assertEqual(log_mgr.HANDLER.output_dir, 'road/to/nowhere')
 
 
 class ActivateTest(BaseLogging):
