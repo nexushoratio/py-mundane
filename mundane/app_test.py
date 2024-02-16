@@ -1,17 +1,26 @@
 """Tests for app.py"""
 
 import contextlib
-import inspect
 import io
 import logging
 import os
 import sys
+import textwrap
 import unittest
 
 from mundane import app
 
 from mundane.test_data import flags_one
 from mundane.test_data import flags_two
+
+
+def munge_expected(old_s: str) -> str:
+    """Modify a multiple line string in a standard way.
+
+    * Run through textwrap.dedent()
+    * Strip leading newline
+    """
+    return textwrap.dedent(old_s).lstrip()
 
 
 class DocstringTest(unittest.TestCase):
@@ -201,15 +210,79 @@ class DocstringTest(unittest.TestCase):
         self.assertEqual(doc.description, '\n'.join(expected_description))
 
 
-class ArgparseAppParsingTest(unittest.TestCase):
+class BaseApp(unittest.TestCase):
+    """Handle cases common to mucking around with a singleton."""
 
     def setUp(self):
-        os.environ['COLUMNS'] = '80'
-        os.environ['ROWS'] = '24'
+        # Ensure at least one handler exists to save/restore
+        logging.debug(self.id)
 
-        self.my_app = app.ArgparseApp()
+        self.prep_tty_vars()
+        self.prep_logger_handlers()
+        self.prep_sys_argv()
+        self.prep_global_handler()
+
         self.stdout = io.StringIO()
         self.stderr = io.StringIO()
+
+    def prep_tty_vars(self):
+        """Explicitly control line wrapping of help.
+
+        By keeping columns fairly narrow, it makes writing tests fit < 80
+        chars.
+        """
+        os.environ['COLUMNS'] = '61'
+        os.environ['ROWS'] = '24'
+
+    def prep_logger_handlers(self):
+        """Restore known logging handlers after each test."""
+        root_logger = logging.getLogger()
+        orig_handlers = root_logger.handlers.copy()
+
+        def restore_orig_handlers():
+            for hdlr in root_logger.handlers:
+                if hdlr not in orig_handlers:
+                    root_logger.removeHandler(hdlr)
+                    hdlr.close()
+            for hdlr in orig_handlers:
+                if hdlr not in root_logger.handlers:
+                    root_logger.addHandler(hdlr)
+
+        self.addCleanup(restore_orig_handlers)
+
+    def prep_sys_argv(self):
+        """Set sys_argv[0] to something knowable to assist testing."""
+        orig_sys_argv0 = sys.argv[0]
+
+        def restore_sys_argv0():
+            sys.argv[0] = orig_sys_argv0
+
+        self.addCleanup(restore_sys_argv0)
+
+        # Keep argv well known so tests can control line wrapping.
+        sys.argv[0] = 'my_test_app'
+
+    def prep_global_handler(self):
+        """Restore log_mgr.HANDLER to default state."""
+        out_dir = app.log_mgr.HANDLER.output_dir
+
+        app.log_mgr.HANDLER.output_dir = 'road/less/traveled'
+
+        def restore_output_dir():
+            app.log_mgr.HANDLER.output_dir = out_dir
+
+        self.addCleanup(restore_output_dir)
+
+    def test_noop(self):
+        # This triggers certain code paths in clean up so they do not bitrot.
+        pass
+
+
+class ArgparseAppParsingTest(BaseApp):
+
+    def setUp(self):
+        super().setUp()
+        self.my_app = app.ArgparseApp()
 
     def test_no_args(self):
 
@@ -228,14 +301,14 @@ class ArgparseAppParsingTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\]
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h]
 
-        Global flags:
-          -h, --help
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            Global flags:
+              -h, --help
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -246,14 +319,14 @@ class ArgparseAppParsingTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['--help'])
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\]
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h]
 
-        Global flags:
-          -h, --help
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            Global flags:
+              -h, --help
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -264,24 +337,17 @@ class ArgparseAppParsingTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['-k'])
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\]
-            .*error: unrecognized arguments: -k
-
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h]
+            my_test_app: error: unrecognized arguments: -k
             """)
         self.assertEqual(self.stdout.getvalue(), '')
-        self.assertRegex(self.stderr.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), expected)
         self.assertEqual(result.exception.code, 2)
 
 
-class ArgparseAppCustomizationsTest(unittest.TestCase):
-
-    def setUp(self):
-        os.environ['COLUMNS'] = '80'
-        os.environ['ROWS'] = '24'
-
-        self.stdout = io.StringIO()
-        self.stderr = io.StringIO()
+class ArgparseAppCustomizationsTest(BaseApp):
 
     def test_with_extras(self):
         description = 'This app does this thing.'
@@ -293,51 +359,23 @@ class ArgparseAppCustomizationsTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             my_app.parser.parse_args(['-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\]
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h]
 
-        This app does this thing.
+            This app does this thing.
 
-        Global flags:
-          -h, --help
+            Global flags:
+              -h, --help
 
-        This is an epilog.
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            This is an epilog.
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
 
-class ArgparseAppParsingWithLogMgrTest(unittest.TestCase):
-
-    def setUp(self):
-        # Ensure a handler exists
-        logging.debug(self.id)
-
-        os.environ['COLUMNS'] = '80'
-        os.environ['ROWS'] = '24'
-
-        self.stdout = io.StringIO()
-        self.stderr = io.StringIO()
-
-        logger = logging.getLogger()
-        orig_handlers = logger.handlers.copy()
-
-        def restore_orig_handlers():
-            for hdlr in logger.handlers:
-                if hdlr not in orig_handlers:
-                    logger.removeHandler(hdlr)
-                    hdlr.close()
-            for hdlr in orig_handlers:
-                if hdlr not in logger.handlers:
-                    logger.addHandler(hdlr)
-
-        self.addCleanup(restore_orig_handlers)
-
-    def test_noop(self):
-        # This triggers other paths in clean up so they do not bitrot.
-        pass
+class ArgparseAppParsingWithLogMgrTest(BaseApp):
 
     def test_dash_h(self):
         my_app = app.ArgparseApp(use_log_mgr=True)
@@ -347,18 +385,22 @@ class ArgparseAppParsingWithLogMgrTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             my_app.parser.parse_args(['-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\] \[-L {.*}\]
-            *\[--log-dir LOG_DIR\]
+        log_levels = '{DEBUG,INFO,WARNING,ERROR,CRITICAL}'
+        expected = munge_expected(
+            f"""
+            usage: my_test_app [-h]
+                               [-L {log_levels}]
+                               [--log-dir LOG_DIR]
 
-        Global flags:
-          -h, --help
-          -L {.*}, --log-level {.*}
-               *Minimal log level \(.*\)
-          --log-dir LOG_DIR *Logging directory \(.*\)
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            Global flags:
+              -h, --help
+              -L {log_levels}, --log-level {log_levels}
+                                    Minimal log level (Default:
+                                    WARNING)
+              --log-dir LOG_DIR     Logging directory (Default:
+                                    road/less/traveled)
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -371,14 +413,12 @@ class ArgparseAppParsingWithLogMgrTest(unittest.TestCase):
         self.assertIsInstance(handler, logging.FileHandler)
 
 
-class ArgparseAppWithDocstringTest(unittest.TestCase):
+class ArgparseAppWithDocstringTest(BaseApp):
 
     def setUp(self):
-        os.environ['COLUMNS'] = '50'
-        os.environ['ROWS'] = '24'
+        super().setUp()
 
-        self.stdout = io.StringIO()
-        self.stderr = io.StringIO()
+        os.environ['COLUMNS'] = '50'
 
     def test_simple_docstring(self):
         """This is a simple docstring."""
@@ -391,16 +431,16 @@ class ArgparseAppWithDocstringTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             my_app.parser.parse_args(['-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage: .* \[-h\]
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h]
 
-        This is a simple docstring.
+            This is a simple docstring.
 
-        Global flags:
-          -h, --help
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            Global flags:
+              -h, --help
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -420,21 +460,21 @@ class ArgparseAppWithDocstringTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             my_app.parser.parse_args(['-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage: .* \[-h\]
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h]
 
-        Lorem ipsum dolor sit amet, consectetur adipiscing
-        elit.
+            Lorem ipsum dolor sit amet, consectetur adipiscing
+            elit.
 
-        Nam non ornare ex, sit amet aliquet urna.  Mauris
-        a fringilla justo.  Mauris eget mi arcu.  Mauris
-        pretium faucibus purus eget consequat.
+            Nam non ornare ex, sit amet aliquet urna.  Mauris
+            a fringilla justo.  Mauris eget mi arcu.  Mauris
+            pretium faucibus purus eget consequat.
 
-        Global flags:
-          -h, --help
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            Global flags:
+              -h, --help
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -446,29 +486,25 @@ class ArgparseAppWithDocstringTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             my_app.parser.parse_args(['-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage: .* \[-h\]
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h]
 
-        Yes global flag, no shared flags, yes commands.
+            Yes global flag, no shared flags, yes commands.
 
-        Global flags:
-          -h, --help
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            Global flags:
+              -h, --help
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
 
-class ArgparseAppRegisterFlagsTest(unittest.TestCase):
+class ArgparseAppRegisterFlagsTest(BaseApp):
 
     def setUp(self):
-        os.environ['COLUMNS'] = '60'
-        os.environ['ROWS'] = '24'
-
+        super().setUp()
         self.my_app = app.ArgparseApp()
-        self.stdout = io.StringIO()
-        self.stderr = io.StringIO()
 
     def test_global_flags(self):
 
@@ -479,15 +515,15 @@ class ArgparseAppRegisterFlagsTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\] \[--foo\]
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h] [--foo]
 
-        Global flags:
-          -h, --help
-          --foo *Enable foo-ing.
-
-        """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+            Global flags:
+              -h, --help
+              --foo       Enable foo-ing.
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -502,16 +538,12 @@ class ArgparseAppRegisterFlagsTest(unittest.TestCase):
             [flags_one, flags_two])
 
 
-class ArgparseAppRegisterCommandsTest(unittest.TestCase):
+class ArgparseAppRegisterCommandsTest(BaseApp):
 
     def setUp(self):
-        os.environ['COLUMNS'] = '60'
-        os.environ['ROWS'] = '24'
+        super().setUp()
 
         self.my_app = app.ArgparseApp()
-        self.stdout = io.StringIO()
-        self.stderr = io.StringIO()
-
         self.my_app.register_shared_flags([flags_one, flags_two])
         self.my_app.register_commands([flags_one, flags_two])
 
@@ -521,14 +553,15 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\] <command> ...
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h] <command> ...
 
             Global flags:
               -h, --help
 
             Commands:
-              For more details: python -m unittest <command> --help
+              For more details: my_test_app <command> --help
 
               <command>            <command description>
                 generate-report
@@ -538,10 +571,9 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                                    Take in new material.
                 process            Process random data.
                 dance              Like no one is watching.
-
             """)
 
-        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -551,15 +583,15 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['generate-report', '-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage: .* generate-report \[-h\]
+        expected = munge_expected(
+            """
+            usage: my_test_app generate-report [-h]
 
             options:
               -h, --help  show this help message and exit
-
             """)
 
-        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -569,9 +601,10 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['put-on-hat', '-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage: .* put-on-hat \[-h\] -x XYZZY
-            [ ]* \[-k \| --keep \| --no-keep\]
+        expected = munge_expected(
+            """
+            usage: my_test_app put-on-hat [-h] -x XYZZY
+                                          [-k | --keep | --no-keep]
 
             options:
               -h, --help            show this help message and exit
@@ -579,10 +612,9 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                                     The xyzzy input.
               -k, --keep, --no-keep
                                     Keep intermediates.
-
             """)
 
-        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -593,8 +625,9 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
             self.my_app.parser.parse_args(['remove-shoes', '-h'])
 
         # Oops, implementer forgot to run through textwrap or equiv
-        expected = inspect.cleandoc(
-            r"""usage: .* remove-shoes \[-h\]
+        expected = munge_expected(
+            """
+            usage: my_test_app remove-shoes [-h]
 
             This is also a custom description.
 
@@ -602,9 +635,8 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
 
             options:
               -h, --help  show this help message and exit
-
             """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -614,9 +646,9 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['ingest-new-material', '-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage: .* ingest-new-material
-            [ ]* \[-h\] -f FILENAME
+        expected = munge_expected(
+            """
+            usage: my_test_app ingest-new-material [-h] -f FILENAME
 
             Take in new material.
 
@@ -630,9 +662,8 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
               -h, --help            show this help message and exit
               -f FILENAME, --filename FILENAME
                                     Filename to ingest.
-
             """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -642,16 +673,16 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['process', '-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage: .* process \[-h\]
+        expected = munge_expected(
+            """
+            usage: my_test_app process [-h]
 
             Process random data.
 
             options:
               -h, --help  show this help message and exit
-
             """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -661,9 +692,9 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['dance', '-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage: .* dance \[-h\]
-            [ ]* \[-n \| --now \| --no-now\]
+        expected = munge_expected(
+            """
+            usage: my_test_app dance [-h] [-n | --now | --no-now]
 
             Like no one is watching.
 
@@ -673,10 +704,9 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
 
             options:
               -h, --help           show this help message and exit
-              -n, --now, --no-now  Now or later. \(default: False\)
-
+              -n, --now, --no-now  Now or later. (default: False)
             """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -726,16 +756,12 @@ class ArgparseAppRegisterCommandsTest(unittest.TestCase):
             })
 
 
-class ArgparseAppRunCommandTest(unittest.TestCase):
+class ArgparseAppRunCommandTest(BaseApp):
 
     def setUp(self):
-        os.environ['COLUMNS'] = '60'
-        os.environ['ROWS'] = '24'
+        super().setUp()
 
         self.my_app = app.ArgparseApp()
-        self.stdout = io.StringIO()
-        self.stderr = io.StringIO()
-
         self.my_app.register_shared_flags([flags_one, flags_two])
         self.my_app.register_commands([flags_one, flags_two])
 
@@ -744,14 +770,15 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
                 self.stdout), contextlib.redirect_stderr(self.stderr):
             retcode = self.my_app.run([])
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\] <command> ...
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h] <command> ...
 
             Global flags:
               -h, --help
 
             Commands:
-              For more details: .* <command> --help
+              For more details: my_test_app <command> --help
 
               <command>            <command description>
                 generate-report
@@ -761,9 +788,8 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
                                    Take in new material.
                 process            Process random data.
                 dance              Like no one is watching.
-
             """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(retcode, os.EX_USAGE)
 
@@ -798,14 +824,15 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.run(['-h'])
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\] <command> ...
+        expected = munge_expected(
+            """
+            usage: my_test_app [-h] <command> ...
 
             Global flags:
               -h, --help
 
             Commands:
-              For more details: .* <command> --help
+              For more details: my_test_app <command> --help
 
               <command>            <command description>
                 generate-report
@@ -815,25 +842,32 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
                                    Take in new material.
                 process            Process random data.
                 dance              Like no one is watching.
-
             """)
-        self.assertRegex(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
     def test_bogus_command_with_defaults(self):
+        bogus = 'bogus-command'
         with self.assertRaises(
                 SystemExit) as result, contextlib.redirect_stdout(
                     self.stdout), contextlib.redirect_stderr(self.stderr):
-            sys.exit(self.my_app.run(['bogus-command']))
+            sys.exit(self.my_app.run([bogus]))
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\] <command> ...
-            .*: argument <command>: invalid choice: 'bogus-command'
-
+        mee = 'my_test_app'
+        cmd = '<command>'
+        choices = "', '".join(
+            (
+                'generate-report', 'put-on-hat', 'remove-shoes',
+                'ingest-new-material', 'process', 'dance'))
+        choose = f"(choose from '{choices}')"
+        expected = munge_expected(
+            f"""
+            usage: {mee} [-h] {cmd} ...
+            {mee}: error: argument {cmd}: invalid choice: '{bogus}' {choose}
             """)
         self.assertEqual(self.stdout.getvalue(), '')
-        self.assertRegex(self.stderr.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), expected)
         self.assertEqual(result.exception.code, 2)
 
     def test_bogus_command_with_fallback(self):
@@ -850,13 +884,20 @@ class ArgparseAppRunCommandTest(unittest.TestCase):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run(['bogosity']))
 
-        expected = inspect.cleandoc(
-            r"""usage:.*\[-h\] <command> ...
-            .*: error: argument <command>: invalid choice: 'bogosity' \(choo.*
-
+        mee = 'my_test_app'
+        cmd = '<command>'
+        choices = "', '".join(
+            (
+                'generate-report', 'put-on-hat', 'remove-shoes',
+                'ingest-new-material', 'process', 'dance'))
+        choose = f"(choose from '{choices}')"
+        expected = munge_expected(
+            f"""
+            usage: {mee} [-h] {cmd} ...
+            {mee}: error: argument {cmd}: invalid choice: 'bogosity' {choose}
             """)
         self.assertEqual(self.stdout.getvalue(), '')
-        self.assertRegex(self.stderr.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), expected)
         self.assertEqual(result.exception.code, 2)
 
     def test_generate_report(self):
