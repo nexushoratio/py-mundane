@@ -89,7 +89,7 @@ class BaseLogging(unittest.TestCase):
         self.addCleanup(restore_sys_argv0)
 
         # Keep argv well known so tests can control line wrapping.
-        sys.argv[0] = 'my_app'
+        sys.argv[0] = self.id().split('.')[-1]
 
     def prep_root_logging_level(self):
         """Restore root logging level after each test."""
@@ -120,20 +120,18 @@ class LogHandlerPropertyTest(BaseLogging):
     def setUp(self):
         super().setUp()
 
-        # In these tests, symlinks are created based upon argv0, so they
-        # should be unique.
-        sys.argv[0] = self.id()
-
         self.handler = log_mgr.LogHandler()
+
+        self.mee = self.id().split('.')[-1]
 
     def check_properties(self, output_dir: str):
         """Shared checks."""
         out_dir = pathlib.PurePath(self.handler.output_dir)
 
         self.assertTrue(out_dir.match(output_dir))
-        self.assertEqual(self.handler.short_filename, f'{self.id()}.log')
+        self.assertEqual(self.handler.short_filename, f'{self.mee}.log')
         # app.log.host.user.date-time.pid
-        pattern = fr'{self.id()}\.log\.\w+\.\w+\.\d{{8}}-\d{{6}}\.\d+$'
+        pattern = fr'{self.mee}\.log\.\w+\.\w+\.\d{{8}}-\d{{6}}\.\d+$'
         self.assertRegex(self.handler.long_filename, pattern)
 
         self.assertEqual(
@@ -144,7 +142,7 @@ class LogHandlerPropertyTest(BaseLogging):
             str(out_dir.joinpath(self.handler.long_filename)))
 
     def test_default_properties(self):
-        self.check_properties(log_mgr.platformdirs.user_log_dir(self.id()))
+        self.check_properties(log_mgr.platformdirs.user_log_dir(self.mee))
 
     def test_set_output_dir(self):
         out = tempfile.mkdtemp()
@@ -157,10 +155,6 @@ class LogHandlerTest(BaseLogging):
 
     def setUp(self):
         super().setUp()
-
-        # In these tests, symlinks are created based upon argv0, so they
-        # should be unique.
-        sys.argv[0] = self.id()
 
         self.logger = log_mgr.logging.getLogger(self.id())
         self.logger.propagate = False
@@ -255,7 +249,7 @@ class LogLevelTest(BaseLogging):
 
         expected = munge_expected(
             """
-            usage: my_app [-h] [-x X]
+            usage: test_action_only [-h] [-x X]
 
             options:
               -h, --help  show this help message and exit
@@ -282,7 +276,7 @@ class LogLevelTest(BaseLogging):
 
         expected = munge_expected(
             """
-            usage: my_app [-h] [-x X]
+            usage: test_with_help [-h] [-x X]
 
             options:
               -h, --help  show this help message and exit
@@ -309,7 +303,7 @@ class LogLevelTest(BaseLogging):
 
         expected = munge_expected(
             """
-            usage: my_app [-h] [-x {INFO,WARNING}]
+            usage: test_with_choices [-h] [-x {INFO,WARNING}]
 
             options:
               -h, --help         show this help message and exit
@@ -339,7 +333,8 @@ class LogLevelTest(BaseLogging):
 
         expected = munge_expected(
             """
-            usage: my_app [-h] [-x {INFO,WARNING,CRITICAL}]
+            usage: test_with_choices_and_help [-h]
+                                              [-x {INFO,WARNING,CRITICAL}]
 
             options:
               -h, --help            show this help message and exit
@@ -371,7 +366,7 @@ class LogLevelTest(BaseLogging):
 
         expected = munge_expected(
             """
-            usage: my_app [-h] [-x X]
+            usage: test_with_default_and_help [-h] [-x X]
 
             options:
               -h, --help  show this help message and exit
@@ -408,7 +403,7 @@ class LogDirTest(BaseLogging):
 
         expected = munge_expected(
             """
-            usage: my_app [-h] [-d D]
+            usage: test_action_only [-h] [-d D]
 
             options:
               -h, --help  show this help message and exit
@@ -434,7 +429,7 @@ class LogDirTest(BaseLogging):
 
         expected = munge_expected(
             f"""
-            usage: my_app [-h] [-d D]
+            usage: test_with_help [-h] [-d D]
 
             options:
               -h, --help  show this help message and exit
@@ -466,7 +461,7 @@ class LogDirTest(BaseLogging):
 
         expected = munge_expected(
             f"""
-            usage: my_app [-h] [-d D]
+            usage: test_with_default_and_help [-h] [-d D]
 
             options:
               -h, --help  show this help message and exit
@@ -518,9 +513,9 @@ class FlagsTest(BaseLogging):
         levels = '{DEBUG,INFO,WARNING,ERROR,CRITICAL}'
         expected = munge_expected(
             f"""
-            usage: my_app [-h]
-                          [-L {levels}]
-                          [--log-dir LOG_DIR]
+            usage: test_default_dash_h [-h]
+                                       [-L {levels}]
+                                       [--log-dir LOG_DIR]
 
             Global flags:
               -h, --help
@@ -550,9 +545,9 @@ class FlagsTest(BaseLogging):
         levels = '{DEBUG,INFO,Custom,WARNING,ERROR,CRITICAL}'
         expected = munge_expected(
             f"""
-            usage: my_app [-h]
-                          [-L {levels}]
-                          [--log-dir LOG_DIR]
+            usage: test_custom_logging_level_dash_h [-h]
+                                                    [-L {levels}]
+                                                    [--log-dir LOG_DIR]
 
             Global flags:
               -h, --help

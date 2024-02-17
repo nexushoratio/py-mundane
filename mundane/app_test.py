@@ -257,10 +257,9 @@ class BaseApp(unittest.TestCase):
         def restore_sys_argv0():
             sys.argv[0] = orig_sys_argv0
 
-        self.addCleanup(restore_sys_argv0)
+        sys.argv[0] = self.id().split('.')[-1]
 
-        # Keep argv well known so tests can control line wrapping.
-        sys.argv[0] = 'my_test_app'
+        self.addCleanup(restore_sys_argv0)
 
     def prep_global_handler(self):
         """Restore log_mgr.HANDLER to default state."""
@@ -285,7 +284,7 @@ class ArgparseAppPropertiesTest(BaseApp):
         self.my_app = app.ArgparseApp()
 
     def test_appname(self):
-        self.assertEqual(self.my_app.appname, 'my_test_app')
+        self.assertEqual(self.my_app.appname, 'test_appname')
 
     def test_argparse_api(self):
         self.assertEqual(self.my_app.argparse_api, app.argparse)
@@ -309,7 +308,7 @@ class ArgparseAppPropertiesTest(BaseApp):
             self.my_app.dirs, app.platformdirs.api.PlatformDirsABC)
         self.assertEqual(
             self.my_app.dirs.user_data_dir,
-            app.platformdirs.user_data_dir('my_test_app'))
+            app.platformdirs.user_data_dir('test_dirs'))
 
 
 class ArgparseAppParsingTest(BaseApp):
@@ -337,7 +336,7 @@ class ArgparseAppParsingTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h]
+            usage: test_dash_h [-h]
 
             Global flags:
               -h, --help
@@ -355,7 +354,7 @@ class ArgparseAppParsingTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h]
+            usage: test_dash_dash_help [-h]
 
             Global flags:
               -h, --help
@@ -373,8 +372,8 @@ class ArgparseAppParsingTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h]
-            my_test_app: error: unrecognized arguments: -k
+            usage: test_unknown_arg [-h]
+            test_unknown_arg: error: unrecognized arguments: -k
             """)
         self.assertEqual(self.stdout.getvalue(), '')
         self.assertEqual(self.stderr.getvalue(), expected)
@@ -395,7 +394,7 @@ class ArgparseAppCustomizationsTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h]
+            usage: test_with_extras [-h]
 
             This app does this thing.
 
@@ -422,7 +421,7 @@ class ArgparseAppParsingWithLogMgrTest(BaseApp):
         log_levels = '{DEBUG,INFO,WARNING,ERROR,CRITICAL}'
         expected = munge_expected(
             f"""
-            usage: my_test_app [-h]
+            usage: test_dash_h [-h]
                                [-L {log_levels}]
                                [--log-dir LOG_DIR]
 
@@ -467,7 +466,7 @@ class ArgparseAppWithDocstringTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h]
+            usage: test_simple_docstring [-h]
 
             This is a simple docstring.
 
@@ -496,7 +495,7 @@ class ArgparseAppWithDocstringTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h]
+            usage: test_longer_docstring [-h]
 
             Lorem ipsum dolor sit amet, consectetur adipiscing
             elit.
@@ -522,7 +521,7 @@ class ArgparseAppWithDocstringTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h]
+            usage: test_real_module [-h]
 
             Yes global flag, no shared flags, yes commands.
 
@@ -551,7 +550,7 @@ class ArgparseAppRegisterFlagsTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h] [--foo]
+            usage: test_global_flags [-h] [--foo]
 
             Global flags:
               -h, --help
@@ -589,13 +588,13 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h] <command> ...
+            usage: test_dash_h_commands [-h] <command> ...
 
             Global flags:
               -h, --help
 
             Commands:
-              For more details: my_test_app <command> --help
+              For more details: test_dash_h_commands <command> --help
 
               <command>            <command description>
                 generate-report
@@ -619,7 +618,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app generate-report [-h]
+            usage: test_generate_report_dash_h generate-report [-h]
 
             options:
               -h, --help  show this help message and exit
@@ -637,8 +636,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app put-on-hat [-h] -x XYZZY
-                                          [-k | --keep | --no-keep]
+            usage: test_put_on_hat_dash_h put-on-hat [-h] -x XYZZY
+                                                     [-k | --keep | --no-keep]
 
             options:
               -h, --help            show this help message and exit
@@ -661,7 +660,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
         # Oops, implementer forgot to run through textwrap or equiv
         expected = munge_expected(
             """
-            usage: my_test_app remove-shoes [-h]
+            usage: test_remove_shoes_dash_h remove-shoes [-h]
 
             This is also a custom description.
 
@@ -682,7 +681,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app ingest-new-material [-h] -f FILENAME
+            usage: test_ingest_dash_h ingest-new-material
+                   [-h] -f FILENAME
 
             Take in new material.
 
@@ -709,7 +709,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app process [-h]
+            usage: test_process_dash_h process [-h]
 
             Process random data.
 
@@ -728,7 +728,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app dance [-h] [-n | --now | --no-now]
+            usage: test_dance_dash_h dance [-h] [-n | --now | --no-now]
 
             Like no one is watching.
 
@@ -806,13 +806,13 @@ class ArgparseAppRunCommandTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h] <command> ...
+            usage: test_no_command_with_defaults [-h] <command> ...
 
             Global flags:
               -h, --help
 
             Commands:
-              For more details: my_test_app <command> --help
+              For more details: test_no_command_with_defaults <command> --help
 
               <command>            <command description>
                 generate-report
@@ -860,13 +860,13 @@ class ArgparseAppRunCommandTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: my_test_app [-h] <command> ...
+            usage: test_fallback_with_dash_h [-h] <command> ...
 
             Global flags:
               -h, --help
 
             Commands:
-              For more details: my_test_app <command> --help
+              For more details: test_fallback_with_dash_h <command> --help
 
               <command>            <command description>
                 generate-report
@@ -888,7 +888,7 @@ class ArgparseAppRunCommandTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run([bogus]))
 
-        mee = 'my_test_app'
+        mee = 'test_bogus_command_with_defaults'
         cmd = '<command>'
         choices = "', '".join(
             (
@@ -918,7 +918,7 @@ class ArgparseAppRunCommandTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run(['bogosity']))
 
-        mee = 'my_test_app'
+        mee = 'test_bogus_command_with_fallback'
         cmd = '<command>'
         choices = "', '".join(
             (
