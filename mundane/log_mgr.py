@@ -80,6 +80,8 @@ class LogHandler(logging.FileHandler):
         self.baseFilename = str(self._base_path)
 
     def _open(self):
+        self._base_path.parent.mkdir(parents=True, exist_ok=True)
+
         handle = super()._open()
 
         # best effort on symlink

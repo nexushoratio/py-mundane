@@ -115,7 +115,7 @@ class BaseLogging(unittest.TestCase):
         pass
 
 
-class LogHandlerTest(BaseLogging):
+class LogHandlerPropertyTest(BaseLogging):
 
     def setUp(self):
         super().setUp()
@@ -124,12 +124,7 @@ class LogHandlerTest(BaseLogging):
         # should be unique.
         sys.argv[0] = self.id()
 
-        self.logger = log_mgr.logging.getLogger(self.id())
-        self.logger.propagate = False
-        self.logger.setLevel('INFO')
-
         self.handler = log_mgr.LogHandler()
-        self.logger.addHandler(self.handler)
 
     def check_properties(self, output_dir: str):
         """Shared checks."""
@@ -156,6 +151,24 @@ class LogHandlerTest(BaseLogging):
         self.handler.output_dir = out
 
         self.check_properties(out)
+
+
+class LogHandlerTest(BaseLogging):
+
+    def setUp(self):
+        super().setUp()
+
+        # In these tests, symlinks are created based upon argv0, so they
+        # should be unique.
+        sys.argv[0] = self.id()
+
+        self.logger = log_mgr.logging.getLogger(self.id())
+        self.logger.propagate = False
+        self.logger.setLevel('INFO')
+
+        self.handler = log_mgr.LogHandler()
+        self.handler.output_dir = tempfile.mkdtemp()
+        self.logger.addHandler(self.handler)
 
     def test_output_deferred_until_first_write(self):
         symlink = self.handler.symlink_path
@@ -194,6 +207,12 @@ class LogHandlerTest(BaseLogging):
         self.logger.info('Logged from %s', self.id())
 
         self.assertTrue(self.handler.symlink_path.is_dir(), 'still a dir')
+
+    def test_output_dir_does_not_exist(self):
+        out_dir = pathlib.Path(self.handler.output_dir)
+        self.handler.output_dir = str(out_dir.joinpath('extra', self.id()))
+
+        self.logger.info('Logged from %s', self.id())
 
 
 class GlobalHandlerTest(BaseLogging):
