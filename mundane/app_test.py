@@ -220,7 +220,6 @@ class BaseApp(unittest.TestCase):
         self.prep_tty_vars()
         self.prep_logger_handlers()
         self.prep_sys_argv()
-        self.prep_global_handler()
 
         self.stdout = io.StringIO()
         self.stderr = io.StringIO()
@@ -260,17 +259,6 @@ class BaseApp(unittest.TestCase):
         sys.argv[0] = self.id().split('.')[-1]
 
         self.addCleanup(restore_sys_argv0)
-
-    def prep_global_handler(self):
-        """Restore log_mgr.HANDLER to default state."""
-        out_dir = app.log_mgr.HANDLER.output_dir
-
-        app.log_mgr.HANDLER.output_dir = 'road/less/traveled'
-
-        def restore_output_dir():
-            app.log_mgr.HANDLER.output_dir = out_dir
-
-        self.addCleanup(restore_output_dir)
 
     def test_noop(self):
         # This triggers certain code paths in clean up so they do not bitrot.
@@ -411,6 +399,9 @@ class ArgparseAppCustomizationsTest(BaseApp):
 class ArgparseAppParsingWithLogMgrTest(BaseApp):
 
     def test_dash_h(self):
+        log_levels = '{DEBUG,INFO,WARNING,ERROR,CRITICAL}'
+        log_dir = app.platformdirs.user_log_dir('test_dash_h')
+        os.environ['COLUMNS'] = f'{len(log_levels) + len(log_dir)}'
         my_app = app.ArgparseApp(use_log_mgr=True)
 
         with self.assertRaises(
@@ -418,20 +409,17 @@ class ArgparseAppParsingWithLogMgrTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             my_app.parser.parse_args(['-h'])
 
-        log_levels = '{DEBUG,INFO,WARNING,ERROR,CRITICAL}'
         expected = munge_expected(
             f"""
-            usage: test_dash_h [-h]
-                               [-L {log_levels}]
+            usage: test_dash_h [-h] [-L {log_levels}]
                                [--log-dir LOG_DIR]
 
             Global flags:
               -h, --help
               -L {log_levels}, --log-level {log_levels}
-                                    Minimal log level (Default:
-                                    WARNING)
+                                    Minimal log level (Default: WARNING)
               --log-dir LOG_DIR     Logging directory (Default:
-                                    road/less/traveled)
+                                    {log_dir})
             """)
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -440,10 +428,16 @@ class ArgparseAppParsingWithLogMgrTest(BaseApp):
     def test_activated(self):
         app.ArgparseApp(use_log_mgr=True)
 
-        root_logger = logging.getLogger()
-        handler = root_logger.handlers[0]
+        handler = logging.getLogger().handlers[0]
 
         self.assertIsInstance(handler, logging.FileHandler)
+
+    def test_not_activated(self):
+        app.ArgparseApp()
+
+        handler = logging.getLogger().handlers[0]
+
+        self.assertNotIsInstance(handler, logging.FileHandler)
 
 
 class ArgparseAppWithDocstringTest(BaseApp):

@@ -94,9 +94,6 @@ class LogHandler(logging.FileHandler):
         return handle
 
 
-HANDLER = LogHandler()
-
-
 class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods
     """Callback action to tweak log settings during flag parsing."""
 
@@ -149,9 +146,12 @@ class LogDir(argparse.Action):
     """
 
     def __init__(self, *args, log_dir: str | None = None, **kwargs):
+        self._handler = logging.getLogger().handlers[0]
+        # type cast
+        assert isinstance(self._handler, LogHandler)
         self.log_dir = log_dir
         if self.log_dir is None:
-            self.log_dir = HANDLER.output_dir
+            self.log_dir = self._handler.output_dir
         if 'help' in kwargs:
             kwargs['help'] += ' (Default: %(_log_dir)s)'
         super().__init__(*args, **kwargs)
@@ -174,7 +174,7 @@ class LogDir(argparse.Action):
     def log_dir(self, value):
         self._log_dir = value
         if self._log_dir is not None:
-            HANDLER.output_dir = self._log_dir
+            self._handler.output_dir = self._log_dir
 
 
 def set_root_log_level(level: str | None):
@@ -208,4 +208,5 @@ def mundane_global_flags(argp_app: app.ArgparseApp):
 
 def activate():
     """Activate this logfile setup."""
-    logging.basicConfig(format=LOG_FORMAT, handlers=[HANDLER], force=True)
+    handler = LogHandler()
+    logging.basicConfig(format=LOG_FORMAT, handlers=[handler], force=True)

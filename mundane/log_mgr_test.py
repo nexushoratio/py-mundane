@@ -43,7 +43,6 @@ class BaseLogging(unittest.TestCase):
         self.prep_logger_handlers()
         self.prep_sys_argv()
         self.prep_root_logging_level()
-        self.prep_global_handler()
 
     def prep_tty_vars(self):
         """Explicitly control line wrapping of help.
@@ -100,15 +99,6 @@ class BaseLogging(unittest.TestCase):
             logger.level = orig_level
 
         self.addCleanup(restore_logger_level)
-
-    def prep_global_handler(self):
-        """Restore log_mgr.HANDLER to default state."""
-        out_dir = log_mgr.HANDLER.output_dir
-
-        def restore_output_dir():
-            log_mgr.HANDLER.output_dir = out_dir
-
-        self.addCleanup(restore_output_dir)
 
     def test_noop(self):
         # This triggers certain code paths in clean up so they do not bitrot.
@@ -207,25 +197,6 @@ class LogHandlerTest(BaseLogging):
         self.handler.output_dir = str(out_dir.joinpath('extra', self.id()))
 
         self.logger.info('Logged from %s', self.id())
-
-
-class GlobalHandlerTest(BaseLogging):
-
-    def test_properties(self):
-        handler = log_mgr.HANDLER
-
-        out_dir = pathlib.PurePath(handler.output_dir)
-
-        self.assertRegex(handler.short_filename, r'^.*\.log$')
-        # app.log.host.user.date-time.pid
-        pattern = r'^.*\.log\.\w+\.\w+\.\d{8}-\d{6}\.\d+$'
-        self.assertRegex(handler.long_filename, pattern)
-
-        self.assertEqual(
-            handler.symlink_path, out_dir.joinpath(handler.short_filename))
-        self.assertEqual(
-            handler.baseFilename,
-            str(out_dir.joinpath(handler.long_filename)))
 
 
 class LogLevelTest(BaseLogging):
@@ -383,9 +354,11 @@ class LogDirTest(BaseLogging):
 
     def setUp(self):
         super().setUp()
+
+        log_mgr.activate()
         self.parser = log_mgr.argparse.ArgumentParser()
         self.stdout = io.StringIO()
-        self.handler = log_mgr.HANDLER
+        self.handler = log_mgr.logging.getLogger().handlers[0]
         self.handler.output_dir = tempfile.mkdtemp()
 
         # Different length of tempdir can cause wrapping issues in help output
@@ -498,7 +471,10 @@ class FlagsTest(BaseLogging):
 
     def setUp(self):
         super().setUp()
-        log_mgr.HANDLER.output_dir = str(
+
+        log_mgr.activate()
+        self.handler = log_mgr.logging.getLogger().handlers[0]
+        self.handler.output_dir = str(
             pathlib.PurePath('well', 'known', 'path'))
 
     def test_default_dash_h(self):
@@ -597,11 +573,11 @@ class FlagsTest(BaseLogging):
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
 
-        self.assertEqual(log_mgr.HANDLER.output_dir, 'well/known/path')
+        self.assertEqual(self.handler.output_dir, 'well/known/path')
 
         my_app.parser.parse_args('--log-dir road/to/nowhere'.split())
 
-        self.assertEqual(log_mgr.HANDLER.output_dir, 'road/to/nowhere')
+        self.assertEqual(self.handler.output_dir, 'road/to/nowhere')
 
 
 class ActivateTest(BaseLogging):
@@ -609,22 +585,14 @@ class ActivateTest(BaseLogging):
     def setUp(self):
         super().setUp()
 
-        log_mgr.HANDLER.output_dir = tempfile.mkdtemp()
+        log_mgr.activate()
         root_logger = log_mgr.logging.getLogger()
         root_logger.setLevel('INFO')
-
-    def test_expected_handler(self):
-        root_logger = log_mgr.logging.getLogger()
-
-        log_mgr.activate()
-
-        handler = root_logger.handlers[0]
-
-        self.assertEqual(handler, log_mgr.HANDLER)
+        self.handler = root_logger.handlers[0]
+        self.handler.output_dir = tempfile.mkdtemp()
 
     def test_output_deferred_until_first_write(self):
-        dst = log_mgr.HANDLER.symlink_path
-        log_mgr.activate()
+        dst = self.handler.symlink_path
 
         self.assertFalse(dst.exists(), 'sanity check')
 
@@ -633,30 +601,27 @@ class ActivateTest(BaseLogging):
         self.assertTrue(dst.exists())
 
     def test_symlink_dst_created(self):
-        log_mgr.activate()
         log_mgr.logging.info('Logged from %s', self.id())
 
-        self.assertTrue(log_mgr.HANDLER.symlink_path.is_symlink())
+        self.assertTrue(self.handler.symlink_path.is_symlink())
 
     def test_symlink_dst_already_exists(self):
-        dst = log_mgr.HANDLER.symlink_path
+        dst = self.handler.symlink_path
 
         dst.touch()
         self.assertTrue(dst.exists(), 'does exist')
         self.assertFalse(dst.is_symlink(), 'but not a symlink')
 
-        log_mgr.activate()
         log_mgr.logging.info('Logged from %s', self.id())
 
         self.assertTrue(dst.is_symlink())
 
     def test_symlink_dst_is_directory(self):
-        dst = log_mgr.HANDLER.symlink_path
+        dst = self.handler.symlink_path
 
         dst.mkdir()
         self.assertTrue(dst.is_dir(), 'sanity check')
 
-        log_mgr.activate()
         log_mgr.logging.info('Logged from %s', self.id())
 
         self.assertTrue(dst.is_dir())
