@@ -284,6 +284,9 @@ class ArgparseAppPropertiesTest(BaseApp):
         super().setUp()
         self.my_app = app.ArgparseApp()
 
+    def test_appname(self):
+        self.assertEqual(self.my_app.appname, 'my_test_app')
+
     def test_argparse_api(self):
         self.assertEqual(self.my_app.argparse_api, app.argparse)
 

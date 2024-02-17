@@ -220,6 +220,11 @@ class ArgparseApp:
             log_mgr.activate()
 
     @property
+    def appname(self) -> str:
+        """The name for this app."""
+        return self._parser.prog
+
+    @property
     def argparse_api(self) -> types.ModuleType:
         """Return the argparse module as a convenience."""
         return argparse
