@@ -13,6 +13,7 @@ authors = [
 ]
 dependencies = [
   'humanize>=4.4.0',
+  'platformdirs',
   'psutil>=2.0.0',
 ]
 dynamic = ['version']

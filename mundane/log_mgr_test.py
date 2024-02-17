@@ -144,7 +144,7 @@ class LogHandlerPropertyTest(BaseLogging):
             str(out_dir.joinpath(self.handler.long_filename)))
 
     def test_default_properties(self):
-        self.check_properties(tempfile.gettempdir())
+        self.check_properties(log_mgr.platformdirs.user_log_dir(self.id()))
 
     def test_set_output_dir(self):
         out = tempfile.mkdtemp()

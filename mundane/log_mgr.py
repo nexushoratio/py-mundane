@@ -14,9 +14,9 @@ import logging
 import pathlib
 import platform
 import sys
-import tempfile
 import typing
 
+import platformdirs
 import psutil
 
 if typing.TYPE_CHECKING:  # pragma: no cover
@@ -60,7 +60,7 @@ class LogHandler(logging.FileHandler):
         self.long_filename = (
             f'{self.short_filename}.{platform.node()}'
             f'.{process.username()}.{now}.{process.pid}')
-        self.output_dir = tempfile.gettempdir()
+        self.output_dir = platformdirs.user_log_dir(progname)
 
         super().__init__(self._base_path, delay=True)
 
