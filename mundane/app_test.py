@@ -304,6 +304,13 @@ class ArgparseAppPropertiesTest(BaseApp):
     def test_width(self):
         self.assertEqual(self.my_app.width, 61)
 
+    def test_dirs(self):
+        self.assertIsInstance(
+            self.my_app.dirs, app.platformdirs.api.PlatformDirsABC)
+        self.assertEqual(
+            self.my_app.dirs.user_data_dir,
+            app.platformdirs.user_data_dir('my_test_app'))
+
 
 class ArgparseAppParsingTest(BaseApp):
 

@@ -30,6 +30,7 @@ import types
 import typing
 
 import humanize
+import platformdirs
 
 from mundane import log_mgr
 
@@ -261,6 +262,11 @@ class ArgparseApp:
         Used internally when formatting help.
         """
         return shutil.get_terminal_size().columns
+
+    @functools.cached_property
+    def dirs(self) -> platformdirs.api.PlatformDirsABC:
+        """Accessor for a consistent PlatformsDirs."""
+        return platformdirs.PlatformDirs(appname=self.appname)
 
     def new_shared_parser(self, name: str) -> argparse.ArgumentParser | None:
         """Register and return a new parser iff it does not already exist.
