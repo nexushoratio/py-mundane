@@ -278,6 +278,30 @@ class BaseApp(unittest.TestCase):
         pass
 
 
+class ArgparseAppPropertiesTest(BaseApp):
+
+    def setUp(self):
+        super().setUp()
+        self.my_app = app.ArgparseApp()
+
+    def test_argparse_api(self):
+        self.assertEqual(self.my_app.argparse_api, app.argparse)
+
+    def test_parser(self):
+        self.assertIsInstance(self.my_app.parser, app.argparse.ArgumentParser)
+
+    def test_subparser(self):
+        self.assertIsInstance(
+            self.my_app.subparser, app.argparse._SubParsersAction)  # pylint: disable=protected-access
+
+    def test_global_flags(self):
+        self.assertIsInstance(
+            self.my_app.global_flags, app.argparse._ArgumentGroup)  # pylint: disable=protected-access
+
+    def test_width(self):
+        self.assertEqual(self.my_app.width, 61)
+
+
 class ArgparseAppParsingTest(BaseApp):
 
     def setUp(self):
