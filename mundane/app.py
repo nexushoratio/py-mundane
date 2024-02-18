@@ -217,7 +217,7 @@ class ArgparseApp:
         self._shared_parsers: dict[str, argparse.ArgumentParser] = dict()
 
         if use_log_mgr:
-            log_mgr.activate()
+            log_mgr.activate(self.appname, self.dirs.user_log_dir)
             self.register_global_flags([log_mgr])
 
     @property

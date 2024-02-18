@@ -38,6 +38,8 @@ class BaseLogging(unittest.TestCase):
     """Handle cases common to mucking around with a singleton."""
 
     def setUp(self):
+        self.mee = self.id().split('.')[-1]
+
         self.prep_tty_vars()
         self.prep_level_names()
         self.prep_logger_handlers()
@@ -87,8 +89,7 @@ class BaseLogging(unittest.TestCase):
 
         self.addCleanup(restore_sys_argv0)
 
-        # Keep argv well known so tests can control line wrapping.
-        sys.argv[0] = self.id().split('.')[-1]
+        sys.argv[0] = self.mee
 
     def prep_root_logging_level(self):
         """Restore root logging level after each test."""
@@ -110,15 +111,14 @@ class LogHandlerPropertyTest(BaseLogging):
     def setUp(self):
         super().setUp()
 
-        self.handler = log_mgr.LogHandler()
+        self.handler = log_mgr.LogHandler(
+            self.mee, str(pathlib.PurePath('default', 'path')))
 
-        self.mee = self.id().split('.')[-1]
-
-    def check_properties(self, output_dir: str):
+    def check_properties(self, expected_dir: str):
         """Shared checks."""
-        out_dir = pathlib.PurePath(self.handler.output_dir)
+        out_dir = pathlib.Path(self.handler.output_dir)
 
-        self.assertTrue(out_dir.match(output_dir))
+        self.assertTrue(out_dir.match(expected_dir))
         self.assertEqual(self.handler.short_filename, f'{self.mee}.log')
         # app.log.host.user.date-time.pid
         pattern = fr'{self.mee}\.log\.\w+\.\w+\.\d{{8}}-\d{{6}}\.\d+$'
@@ -126,13 +126,13 @@ class LogHandlerPropertyTest(BaseLogging):
 
         self.assertEqual(
             self.handler.symlink_path,
-            out_dir.joinpath(self.handler.short_filename))
+            out_dir.joinpath(self.handler.short_filename).absolute())
         self.assertEqual(
             self.handler.baseFilename,
-            str(out_dir.joinpath(self.handler.long_filename)))
+            str(out_dir.joinpath(self.handler.long_filename).absolute()))
 
     def test_default_properties(self):
-        self.check_properties(log_mgr.platformdirs.user_log_dir(self.mee))
+        self.check_properties(str(pathlib.PurePath('default', 'path')))
 
     def test_set_output_dir(self):
         out = tempfile.mkdtemp()
@@ -150,7 +150,7 @@ class LogHandlerTest(BaseLogging):
         self.logger.propagate = False
         self.logger.setLevel('INFO')
 
-        self.handler = log_mgr.LogHandler()
+        self.handler = log_mgr.LogHandler(self.id(), tempfile.mkdtemp())
         self.handler.output_dir = tempfile.mkdtemp()
         self.logger.addHandler(self.handler)
 
@@ -203,6 +203,7 @@ class LogLevelTest(BaseLogging):
 
     def setUp(self):
         super().setUp()
+
         self.parser = log_mgr.argparse.ArgumentParser()
         self.stdout = io.StringIO()
 
@@ -355,7 +356,7 @@ class LogDirTest(BaseLogging):
     def setUp(self):
         super().setUp()
 
-        log_mgr.activate()
+        log_mgr.activate(self.id(), tempfile.mkdtemp())
         self.parser = log_mgr.argparse.ArgumentParser()
         self.stdout = io.StringIO()
         self.handler = log_mgr.logging.getLogger().handlers[0]
@@ -472,7 +473,8 @@ class FlagsTest(BaseLogging):
     def setUp(self):
         super().setUp()
 
-        log_mgr.activate()
+        log_mgr.activate(
+            self.id(), str(pathlib.PurePath('well', 'known', 'path')))
         self.handler = log_mgr.logging.getLogger().handlers[0]
         self.handler.output_dir = str(
             pathlib.PurePath('well', 'known', 'path'))
@@ -585,7 +587,7 @@ class ActivateTest(BaseLogging):
     def setUp(self):
         super().setUp()
 
-        log_mgr.activate()
+        log_mgr.activate(self.id(), tempfile.mkdtemp())
         root_logger = log_mgr.logging.getLogger()
         root_logger.setLevel('INFO')
         self.handler = root_logger.handlers[0]

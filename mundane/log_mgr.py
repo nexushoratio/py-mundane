@@ -1,10 +1,10 @@
 """Provide a reasonable set of defaults for logging.
 
-To use the global flag, register using:
-   ArgparseApp().register_global_flags(log_mgr)
-
 To turn on the global log file, execute the following early in your program:
-  log_mgr.activate()
+  log_mgr.activate(appname, log_directory)
+
+To use the global flag with ArgparseApp, register using:
+   ArgparseApp().register_global_flags(log_mgr)
 """
 from __future__ import annotations
 
@@ -13,10 +13,8 @@ import datetime
 import logging
 import pathlib
 import platform
-import sys
 import typing
 
-import platformdirs
 import psutil
 
 if typing.TYPE_CHECKING:  # pragma: no cover
@@ -46,21 +44,19 @@ class LogHandler(logging.FileHandler):
     permissions could prevent the symlink if files are logged to a directory
     shared by users with a sticky-bit set (e.g., /tmp).
 
-    argv[0].log -> argv[0].log.$HOST.$USER.$DATETIME.$PID
+    progname.log -> progname.log.$HOST.$USER.$DATETIME.$PID
     """
 
-    def __init__(self):
+    def __init__(self, progname: str, output_dir: str):
         process = psutil.Process()
 
-        # The following handles 'python foo.py' better than process.name()
-        progname = pathlib.Path(sys.argv[0]).name
         now = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 
         self.short_filename = f'{progname}.log'
         self.long_filename = (
             f'{self.short_filename}.{platform.node()}'
             f'.{process.username()}.{now}.{process.pid}')
-        self.output_dir = platformdirs.user_log_dir(progname)
+        self.output_dir = output_dir
 
         super().__init__(self._base_path, delay=True)
 
@@ -206,7 +202,13 @@ def mundane_global_flags(argp_app: app.ArgparseApp):
         default=argparse.SUPPRESS)
 
 
-def activate():
-    """Activate this logfile setup."""
-    handler = LogHandler()
+def activate(appname: str, output_dir: str):
+    """Activate this log handler with this configuration.
+
+    Args:
+      appname: Used to configure the logfile name.
+      output_dir: The initial output directory for the logfile.  May be
+        overridden, e.g., using LogDir as a flag.
+    """
+    handler = LogHandler(appname, output_dir)
     logging.basicConfig(format=LOG_FORMAT, handlers=[handler], force=True)
