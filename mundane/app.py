@@ -114,6 +114,9 @@ class Docstring:
         self._description = '\n\n'.join(description_parts)
 
 
+CommandFunc: typing.TypeAlias = typing.Callable[[argparse.Namespace], int]
+
+
 class ArgparseApp:
     """Facilitate creating an argparse based application.
 
@@ -176,8 +179,7 @@ class ArgparseApp:
 
     The magic comes from a simple expectation:
     * The Namespace object returned from the resulting parse_args() will
-    contain an attribute named "func" with the signature:
-        typing.Callable[[argparse.Namespace], int]
+    contain an attribute named "func" with the CommandFunc signature.
 
     Generally this is done via the register_command() method, but may be done
     so directly as well via the parser property and its set_defaults() method.
@@ -309,8 +311,7 @@ class ArgparseApp:
         return self._shared_parsers.get(name)
 
     def register_command(
-            self, func: typing.Callable[[argparse.Namespace], int],
-            **kwargs) -> argparse.ArgumentParser:
+            self, func: CommandFunc, **kwargs) -> argparse.ArgumentParser:
         """Register a specific command.
 
         This method is typically called by a module's mundane_commands() hook.
