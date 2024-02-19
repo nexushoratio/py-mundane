@@ -1,4 +1,5 @@
 """Tests for app.py"""
+# pylint: disable=too-many-lines
 
 import contextlib
 import io
@@ -954,7 +955,27 @@ class ArgparseAppRunCommandTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run(['remove-shoes']))
 
-        expected = 'removing shoes because remove-shoes\n'
+        expected = munge_expected(
+            """
+            removing shoes because remove-shoes
+            Also: Foo was False
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 3)
+
+    def test_remove_shoes_with_foo(self):
+
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run('--foo remove-shoes'.split()))
+
+        expected = munge_expected(
+            """
+            removing shoes because remove-shoes
+            Also: Foo was True
+            """)
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 3)

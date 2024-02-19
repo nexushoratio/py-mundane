@@ -115,6 +115,7 @@ class Docstring:
 
 
 CommandFunc: typing.TypeAlias = typing.Callable[[argparse.Namespace], int]
+NamespaceHook: typing.TypeAlias = typing.Callable[[argparse.Namespace], None]
 
 
 class ArgparseApp:
@@ -217,6 +218,7 @@ class ArgparseApp:
             self.GLOBAL_FLAGS)
         self._global_flags.add_argument('-h', '--help', action='help')
         self._shared_parsers: dict[str, argparse.ArgumentParser] = dict()
+        self._after_parse_hooks: list[NamespaceHook] = list()
 
         if use_log_mgr:
             log_mgr.activate(self.appname, self.dirs.user_log_dir)
@@ -309,6 +311,28 @@ class ArgparseApp:
           raise Exception('The parser "foo" was not shared!')
         """
         return self._shared_parsers.get(name)
+
+    def register_after_parse_hook(self, func: NamespaceHook) -> None:
+        """Register a function to be called after parsing flags.
+
+        This method is typically called from any module's hook that this class
+        calls.
+
+        These hooks are called in the order they were registered after flags
+        are parsed and before the selected command is executed.
+
+        They can be used for a variety of things:
+
+        * Complex multi-flag validation that is difficult to do with basic
+          argparse
+        * Removing properties instead of using default=argparse.SUPPRESS
+        * Adding properties, perhaps based on other flags, such as a database
+          connection singleton
+
+        Args:
+            func: The function to register.
+        """
+        self._after_parse_hooks.append(func)
 
     def register_command(
             self, func: CommandFunc, **kwargs) -> argparse.ArgumentParser:
@@ -433,6 +457,10 @@ class ArgparseApp:
     def run(self, argv: list[str] | None = None) -> int:
         """Execute the selected function."""
         args = self.parser.parse_args(argv)
+
+        for hook in self._after_parse_hooks:
+            hook(args)
+
         ret = os.EX_USAGE
         try:
             logging.debug('Calling %s with %s', args.func, args)
