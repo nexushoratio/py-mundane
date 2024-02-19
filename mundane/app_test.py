@@ -789,7 +789,9 @@ class ArgparseAppRunCommandTest(BaseApp):
     def setUp(self):
         super().setUp()
 
+        self.maxDiff = None  # pylint: disable=invalid-name
         self.my_app = app.ArgparseApp()
+        self.my_app.register_global_flags([flags_one, flags_two])
         self.my_app.register_shared_flags([flags_one, flags_two])
         self.my_app.register_commands([flags_one, flags_two])
 
@@ -800,10 +802,12 @@ class ArgparseAppRunCommandTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: test_no_command_with_defaults [-h] <command> ...
+            usage: test_no_command_with_defaults [-h] [--foo]
+                                                 <command> ...
 
             Global flags:
               -h, --help
+              --foo                Enable foo-ing.
 
             Commands:
               For more details: test_no_command_with_defaults <command> --help
@@ -854,10 +858,11 @@ class ArgparseAppRunCommandTest(BaseApp):
 
         expected = munge_expected(
             """
-            usage: test_fallback_with_dash_h [-h] <command> ...
+            usage: test_fallback_with_dash_h [-h] [--foo] <command> ...
 
             Global flags:
               -h, --help
+              --foo                Enable foo-ing.
 
             Commands:
               For more details: test_fallback_with_dash_h <command> --help
@@ -891,7 +896,8 @@ class ArgparseAppRunCommandTest(BaseApp):
         choose = f"(choose from '{choices}')"
         expected = munge_expected(
             f"""
-            usage: {mee} [-h] {cmd} ...
+            usage: {mee} [-h] [--foo]
+                                                    {cmd} ...
             {mee}: error: argument {cmd}: invalid choice: '{bogus}' {choose}
             """)
         self.assertEqual(self.stdout.getvalue(), '')
@@ -921,7 +927,8 @@ class ArgparseAppRunCommandTest(BaseApp):
         choose = f"(choose from '{choices}')"
         expected = munge_expected(
             f"""
-            usage: {mee} [-h] {cmd} ...
+            usage: {mee} [-h] [--foo]
+                                                    {cmd} ...
             {mee}: error: argument {cmd}: invalid choice: 'bogosity' {choose}
             """)
         self.assertEqual(self.stdout.getvalue(), '')
