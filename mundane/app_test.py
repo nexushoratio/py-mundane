@@ -1001,12 +1001,13 @@ class ArgparseAppRunCommandTest(BaseApp):
         self.assertEqual(result.exception.code, 1)
 
     def test_dance(self):
-        with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout), contextlib.redirect_stderr(self.stderr):
+        with self.assertRaisesRegex(RuntimeError,
+                                    'generic exception handling'):
             sys.exit(self.my_app.run(['dance']))
 
-        self.assertEqual(result.exception.code, 0)
+    def test_dance_now(self):
+        with self.assertRaisesRegex(AttributeError, 'issue #18'):
+            sys.exit(self.my_app.run(['dance', '--now']))
 
 
 if __name__ == '__main__':  # pragma: no cover

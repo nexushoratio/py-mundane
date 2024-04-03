@@ -76,5 +76,7 @@ def dance(args: 'argparse.Namespace') -> int:
 
     Rest of the content.
     """
-    del args
-    return 0
+    if args.now:
+        raise AttributeError('issue #18')
+
+    raise RuntimeError('generic exception handling')

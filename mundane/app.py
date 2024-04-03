@@ -462,7 +462,7 @@ class ArgparseApp:
             hook(args)
 
         ret = os.EX_USAGE
-        try:
+        if hasattr(args, 'func'):
             logging.debug('Calling %s with %s', args.func, args)
             ret = args.func(args)
             logging.debug(
@@ -470,7 +470,7 @@ class ArgparseApp:
                 humanize.naturalsize(
                     resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
             logging.debug('Finished. (%d)', ret or 0)
-        except AttributeError:
+        else:
             self.parser.print_help()
 
         return ret
