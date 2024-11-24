@@ -35,6 +35,7 @@ def demo(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
+    """A demo app."""
     my_app = app.ArgparseApp(use_docstring_for_description=demo)
 
     # This is necessary since this application has no subcommands.

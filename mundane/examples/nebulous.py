@@ -176,6 +176,7 @@ def two_words(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
+    """A nebulous app."""
     # Use this module for the help output.
     nebulous_app = app.ArgparseApp(
         use_log_mgr=True, use_docstring_for_description=sys.modules[__name__])
