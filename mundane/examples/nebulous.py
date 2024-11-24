@@ -172,6 +172,8 @@ def two_words(args: argparse.Namespace) -> int:
     print(
         'But, note that the command has a "-" but the function name has "_".')
 
+    return 0
+
 
 def main() -> int:
     # Use this module for the help output.
