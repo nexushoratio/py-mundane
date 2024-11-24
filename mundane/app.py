@@ -184,6 +184,7 @@ class ArgparseApp:
 
     Generally this is done via the register_command() method, but may be done
     so directly as well via the parser property and its set_defaults() method.
+    Specifically, this is necessary when subcommands are not used.
     """
 
     GLOBAL_FLAGS = 'Global flags'
