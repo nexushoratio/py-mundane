@@ -89,6 +89,8 @@ def mundane_commands(ctx: app.ArgparseApp):
         required=True,
         help='An item to clean.')
 
+    ctx.register_command(two_words)
+
 
 def hook_one(args: argparse.Namespace):
     """Demonstrate the order hooks are called."""
@@ -162,6 +164,13 @@ def clean(args: argparse.Namespace) -> int:
         ret = 1
 
     return ret
+
+
+def two_words(args: argparse.Namespace) -> int:
+    """Print out two words."""
+    print('Two words.')
+    print(
+        'But, note that the command has a "-" but the function name has "_".')
 
 
 def main() -> int:
