@@ -253,7 +253,7 @@ class ArgparseApp:
     def global_flags(self) -> argparse._ArgumentGroup:
         """An argparse.ArgumentParser().add_argument_group() instance.
 
-        Module hooks should use this property to add additional global flag.
+        Module hooks should use this property to add additional global flags.
 
         my_app.global_flags.add_argument(...)
         """
