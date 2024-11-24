@@ -1,1 +1,3 @@
 .coverage
+build
+mundane.egg-info
