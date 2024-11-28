@@ -285,6 +285,7 @@ class ArgparseAppPropertiesTest(BaseApp):
     def test_subparser(self):
         self.assertIsInstance(
             self.my_app.subparser, app.argparse._SubParsersAction)  # pylint: disable=protected-access
+        self.assertIs(self.my_app.subparser, self.my_app.subparser)
 
     def test_global_flags(self):
         self.assertIsInstance(
