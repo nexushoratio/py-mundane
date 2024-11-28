@@ -216,7 +216,7 @@ class BaseApp(unittest.TestCase):
 
     def setUp(self):
         # Ensure at least one handler exists to save/restore
-        logging.debug(self.id)
+        logging.debug(self.id())
 
         self.prep_tty_vars()
         self.prep_logger_handlers()
