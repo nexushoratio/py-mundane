@@ -218,6 +218,7 @@ class BaseApp(unittest.TestCase):
         # Ensure at least one handler exists to save/restore
         logging.debug(self.id())
 
+        self.mee = self.id().split('.')[-1]
         self.prep_tty_vars()
         self.prep_logger_handlers()
         self.prep_sys_argv()
@@ -257,7 +258,7 @@ class BaseApp(unittest.TestCase):
         def restore_sys_argv0():
             sys.argv[0] = orig_sys_argv0
 
-        sys.argv[0] = self.id().split('.')[-1]
+        sys.argv[0] = self.mee
 
         self.addCleanup(restore_sys_argv0)
 
@@ -888,7 +889,6 @@ class ArgparseAppRunCommandTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run([bogus]))
 
-        mee = 'test_bogus_command_with_defaults'
         cmd = '<command>'
         choices = "', '".join(
             (
@@ -897,9 +897,9 @@ class ArgparseAppRunCommandTest(BaseApp):
         choose = f"(choose from '{choices}')"
         expected = munge_expected(
             f"""
-            usage: {mee} [-h] [--foo]
+            usage: {self.mee} [-h] [--foo]
                                                     {cmd} ...
-            {mee}: error: argument {cmd}: invalid choice: '{bogus}' {choose}
+            {self.mee}: error: argument {cmd}: invalid choice: '{bogus}' {choose}
             """)
         self.assertEqual(self.stdout.getvalue(), '')
         self.assertEqual(self.stderr.getvalue(), expected)
@@ -919,7 +919,6 @@ class ArgparseAppRunCommandTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run(['bogosity']))
 
-        mee = 'test_bogus_command_with_fallback'
         cmd = '<command>'
         choices = "', '".join(
             (
@@ -928,9 +927,9 @@ class ArgparseAppRunCommandTest(BaseApp):
         choose = f"(choose from '{choices}')"
         expected = munge_expected(
             f"""
-            usage: {mee} [-h] [--foo]
+            usage: {self.mee} [-h] [--foo]
                                                     {cmd} ...
-            {mee}: error: argument {cmd}: invalid choice: 'bogosity' {choose}
+            {self.mee}: error: argument {cmd}: invalid choice: 'bogosity' {choose}
             """)
         self.assertEqual(self.stdout.getvalue(), '')
         self.assertEqual(self.stderr.getvalue(), expected)
