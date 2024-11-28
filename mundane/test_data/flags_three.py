@@ -10,12 +10,14 @@ if typing.TYPE_CHECKING:  # pragma: no cover
     from mundane import app
 
 
+class Error(Exception):
+    """Base module exception."""
+
+
 def mundane_commands(an_app: app.ArgparseApp):
     """Register all module commands."""
-    parser = an_app.register_command(sub)
+    parser = an_app.register_command(sub, usage_only=True)
     subparser = an_app.new_subparser(parser)
-
-    parser.set_defaults(func=lambda x, y=parser: _hero(x, y))
 
     an_app.register_command(atomic, subparser=subparser)
     an_app.register_command(class_, subparser=subparser, name='class')
@@ -39,21 +41,9 @@ def mundane_commands(an_app: app.ArgparseApp):
     an_app.register_command(fire, subparser=subparser)
 
 
-def _hero(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
-    """A wrapper so sub can be handed a parser.
-
-    Using set_defaults() to set `.parser` does not work because it will set it
-    for all nested parsers.
-    """
-    args.parser = parser
-    return sub(args)
-
-
-def sub(args: argparse.Namespace) -> int:
+def sub(args: argparse.Namespace) -> int:  # pragma: no cover
     """A subcommand for wrapping other subcommands."""
-    args.parser.print_help()
-
-    return 1
+    raise Error('Should never be called.')
 
 
 def atomic(args: argparse.Namespace) -> int:

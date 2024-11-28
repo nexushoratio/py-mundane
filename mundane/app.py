@@ -119,6 +119,15 @@ NamespaceHook: typing.TypeAlias = typing.Callable[[argparse.Namespace], None]
 SubParser: typing.TypeAlias = argparse._SubParsersAction  # pylint: disable=protected-access
 
 
+def _usage(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """A function called simply to display help output."""
+    del args
+
+    parser.print_help()
+
+    return os.EX_USAGE
+
+
 class ArgparseApp:
     """Facilitate creating an argparse based application.
 
@@ -347,6 +356,7 @@ class ArgparseApp:
             self,
             func: CommandFunc,
             name: str | None = None,
+            usage_only: bool = False,
             subparser: SubParser | None = None,
             **kwargs) -> argparse.ArgumentParser:
         """Register a specific command.
@@ -373,6 +383,9 @@ class ArgparseApp:
             func: The function to register.
             name: An override for the name of the command instead of deriving
               it from the name of the function.
+            usage_only: When true, the command will be configured to only
+              display usage information and the registered function will not
+              be called.
             subparser: The command will be attached to this subparser.
             kwargs: Passed directly to add_parser()
 
@@ -395,7 +408,10 @@ class ArgparseApp:
         parser_args.update(kwargs)
 
         parser = subparser.add_parser(name, **parser_args)
-        parser.set_defaults(func=func)
+        if usage_only:
+            parser.set_defaults(func=lambda x, y=parser: _usage(x, y))
+        else:
+            parser.set_defaults(func=func)
 
         return parser
 

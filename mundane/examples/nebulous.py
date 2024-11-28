@@ -98,6 +98,11 @@ def mundane_commands(ctx: app.ArgparseApp):
     ctx.register_command(hostname, subparser=subparser)
     ctx.register_command(permissions, subparser=subparser)
 
+    # Demonstrate how to have a subcommand that only displays usage.
+    parser = ctx.register_command(roger, usage_only=True)
+    subparser = ctx.new_subparser(parser)
+    ctx.register_command(roger, subparser=subparser)
+
 
 def hook_one(args: argparse.Namespace):
     """Demonstrate the order hooks are called."""
@@ -213,6 +218,14 @@ def hostname(args: argparse.Namespace) -> int:
 def permissions(args: argparse.Namespace) -> int:
     """An nmcli like permissions command."""
     print('This would be a table of permissions.')
+
+    return 0
+
+
+def roger(args: argparse.Namespace) -> int:
+    """Acknowledge Roger, but only the second time."""
+
+    print('Roger, Roger.')
 
     return 0
 

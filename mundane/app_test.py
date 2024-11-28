@@ -1190,7 +1190,7 @@ class ArgparseAppRunCommandTest(BaseApp):
             """)
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
-        self.assertEqual(result.exception.code, 1)
+        self.assertEqual(result.exception.code, os.EX_USAGE)
 
     def test_sub_atomic(self):
         with self.assertRaises(
