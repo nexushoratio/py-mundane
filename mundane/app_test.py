@@ -215,6 +215,8 @@ class BaseApp(unittest.TestCase):
     """Handle cases common to mucking around with a singleton."""
 
     def setUp(self):
+        self.maxDiff = None  # pylint: disable=invalid-name
+
         # Ensure at least one handler exists to save/restore
         logging.debug(self.id())
 
@@ -792,7 +794,6 @@ class ArgparseAppRunCommandTest(BaseApp):
     def setUp(self):
         super().setUp()
 
-        self.maxDiff = None  # pylint: disable=invalid-name
         self.my_app = app.ArgparseApp()
         self.my_app.register_global_flags([flags_one, flags_two])
         self.my_app.register_shared_flags([flags_one, flags_two])
