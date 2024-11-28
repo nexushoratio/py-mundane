@@ -89,6 +89,7 @@ def mundane_commands(ctx: app.ArgparseApp):
         required=True,
         help='An item to clean.')
 
+    ctx.register_command(del_, name='del')
     ctx.register_command(two_words)
 
     parser = ctx.register_command(general)
@@ -170,6 +171,13 @@ def clean(args: argparse.Namespace) -> int:
         ret = 1
 
     return ret
+
+
+def del_(args: argparse.Namespace) -> int:
+    """Delete the world."""
+    print('The world is deleted.')
+
+    return 0
 
 
 def two_words(args: argparse.Namespace) -> int:

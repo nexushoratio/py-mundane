@@ -346,6 +346,7 @@ class ArgparseApp:
     def register_command(
             self,
             func: CommandFunc,
+            name: str | None = None,
             subparser: SubParser | None = None,
             **kwargs) -> argparse.ArgumentParser:
         """Register a specific command.
@@ -370,6 +371,8 @@ class ArgparseApp:
 
         Args:
             func: The function to register.
+            name: An override for the name of the command instead of deriving
+              it from the name of the function.
             subparser: The command will be attached to this subparser.
             kwargs: Passed directly to add_parser()
 
@@ -379,8 +382,9 @@ class ArgparseApp:
         """
         if subparser is None:
             subparser = self.subparser
+        if not name:
+            name = func.__name__.replace('_', '-')
 
-        name = func.__name__.replace('_', '-')
         docstring = Docstring(func, self.width)
 
         parser_args = {

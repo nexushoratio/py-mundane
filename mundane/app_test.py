@@ -766,6 +766,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
               <command>   <command description>
                 atomic    A small feature.
+                class     Deriving from a super.
                 marine    A boat that can do interesting things.
                 routine   A procedure to call.
             """)
@@ -1183,6 +1184,7 @@ class ArgparseAppRunCommandTest(BaseApp):
 
               <command>   <command description>
                 atomic    A small feature.
+                class     Deriving from a super.
                 marine    A boat that can do interesting things.
                 routine   A procedure to call.
             """)
@@ -1196,6 +1198,16 @@ class ArgparseAppRunCommandTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run(['sub', 'atomic']))
         expected = 'I am a particle that makes up elements.\n'
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_sub_class(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run(['sub', 'class']))
+        expected = 'Derivation achieved.\n'
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)

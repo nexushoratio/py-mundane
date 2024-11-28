@@ -18,6 +18,7 @@ def mundane_commands(an_app: app.ArgparseApp):
     parser.set_defaults(func=lambda x, y=parser: _hero(x, y))
 
     an_app.register_command(atomic, subparser=subparser)
+    an_app.register_command(class_, subparser=subparser, name='class')
     parser = an_app.register_command(marine, subparser=subparser)
     an_app.register_command(routine, subparser=subparser)
 
@@ -95,5 +96,14 @@ def routine(args: argparse.Namespace) -> int:
     del args
 
     print('A sub routine was called.')
+
+    return 0
+
+
+def class_(args: argparse.Namespace) -> int:
+    """Deriving from a super."""
+    del args
+
+    print('Derivation achieved.')
 
     return 0
