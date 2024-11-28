@@ -91,6 +91,12 @@ def mundane_commands(ctx: app.ArgparseApp):
 
     ctx.register_command(two_words)
 
+    parser = ctx.register_command(general)
+    subparser = ctx.new_subparser(parser)
+    ctx.register_command(status, subparser=subparser)
+    ctx.register_command(hostname, subparser=subparser)
+    ctx.register_command(permissions, subparser=subparser)
+
 
 def hook_one(args: argparse.Namespace):
     """Demonstrate the order hooks are called."""
@@ -171,6 +177,34 @@ def two_words(args: argparse.Namespace) -> int:
     print('Two words.')
     print(
         'But, note that the command has a "-" but the function name has "_".')
+
+    return 0
+
+
+def general(args: argparse.Namespace) -> int:
+    """An nmcli like general command."""
+
+    # This is the default command
+    return status(args)
+
+
+def status(args: argparse.Namespace) -> int:
+    """An nmcli like status command."""
+    print('This is the overall status.')
+
+    return 0
+
+
+def hostname(args: argparse.Namespace) -> int:
+    """An nmcli like hostname command."""
+    print('Hostname is: unknown')
+
+    return 1
+
+
+def permissions(args: argparse.Namespace) -> int:
+    """An nmcli like permissions command."""
+    print('This would be a table of permissions.')
 
     return 0
 

@@ -13,6 +13,7 @@ from mundane import app
 
 from mundane.test_data import flags_one
 from mundane.test_data import flags_two
+from mundane.test_data import flags_three
 
 
 def munge_expected(old_s: str) -> str:
@@ -577,7 +578,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
         self.my_app = app.ArgparseApp()
         self.my_app.register_shared_flags([flags_one, flags_two])
-        self.my_app.register_commands([flags_one, flags_two])
+        self.my_app.register_commands([flags_one, flags_two, flags_three])
 
     def test_dash_h_commands(self):
         with self.assertRaises(
@@ -603,6 +604,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                                    Take in new material.
                 process            Process random data.
                 dance              Like no one is watching.
+                sub                A subcommand for wrapping other
+                                   subcommands.
             """)
 
         self.assertEqual(self.stdout.getvalue(), expected)
@@ -743,6 +746,140 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
+    def test_sub_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(['sub', '-h'])
+
+        expected = munge_expected(
+            """
+            usage: test_sub_dash_h sub [-h] <command> ...
+
+            A subcommand for wrapping other subcommands.
+
+            options:
+              -h, --help  show this help message and exit
+
+            Commands:
+              For more details: test_sub_dash_h sub <command> --help
+
+              <command>   <command description>
+                atomic    A small feature.
+                marine    A boat that can do interesting things.
+                routine   A procedure to call.
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_sub_atomic_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(['sub', 'atomic', '-h'])
+
+        expected = munge_expected(
+            """
+            usage: test_sub_atomic_dash_h sub atomic [-h]
+
+            A small feature.
+
+            options:
+              -h, --help  show this help message and exit
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_sub_marine_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(['sub', 'marine', '-h'])
+
+        expected = munge_expected(
+            """
+            usage: test_sub_marine_dash_h sub marine [-h] <command> ...
+
+            A boat that can do interesting things.
+
+            options:
+              -h, --help    show this help message and exit
+
+            Commands:
+              For more details: test_sub_marine_dash_h sub marine <command> --help
+
+              <command>     <command description>
+                change-depth
+                            Move to a new depth.
+                fire        Fire a weapon.
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_sub_marine_change_depth_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(
+                ['sub', 'marine', 'change-depth', '-h'])
+
+        expected = munge_expected(
+            f"""
+            usage: {self.mee} sub marine change-depth
+                   [-h] --rate RATE [--depth DEPTH]
+
+            Move to a new depth.
+
+            options:
+              -h, --help     show this help message and exit
+              --rate RATE    The rate of change in meters/second.
+              --depth DEPTH  Cruising depth in meters. (default: 0)
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_sub_marine_fire_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(['sub', 'marine', 'fire', '-h'])
+
+        expected = munge_expected(
+            f"""
+            usage: {self.mee} sub marine fire [-h]
+
+            Fire a weapon.
+
+            options:
+              -h, --help  show this help message and exit
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_sub_routine_dash_h(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            self.my_app.parser.parse_args(['sub', 'routine', '-h'])
+
+        expected = munge_expected(
+            f"""
+            usage: {self.mee} sub routine [-h]
+
+            A procedure to call.
+
+            options:
+              -h, --help  show this help message and exit
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
     def test_put_on_hat_foo(self):
         args = self.my_app.parser.parse_args(['put-on-hat', '--xyzzy', 'foo'])
 
@@ -788,6 +925,18 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 'now': False
             })
 
+    def test_sub_marine_change_depth(self):
+        args = self.my_app.parser.parse_args(
+            ['sub', 'marine', 'change-depth', '--rate', '10'])
+
+        self.assertEqual(
+            vars(args), {
+                'name': 'change-depth',
+                'func': flags_three.change_depth,
+                'rate': 10,
+                'depth': 0,
+            })
+
 
 class ArgparseAppRunCommandTest(BaseApp):
 
@@ -797,7 +946,7 @@ class ArgparseAppRunCommandTest(BaseApp):
         self.my_app = app.ArgparseApp()
         self.my_app.register_global_flags([flags_one, flags_two])
         self.my_app.register_shared_flags([flags_one, flags_two])
-        self.my_app.register_commands([flags_one, flags_two])
+        self.my_app.register_commands([flags_one, flags_two, flags_three])
 
     def test_no_command_with_defaults(self):
         with contextlib.redirect_stdout(
@@ -824,6 +973,8 @@ class ArgparseAppRunCommandTest(BaseApp):
                                    Take in new material.
                 process            Process random data.
                 dance              Like no one is watching.
+                sub                A subcommand for wrapping other
+                                   subcommands.
             """)
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -879,6 +1030,8 @@ class ArgparseAppRunCommandTest(BaseApp):
                                    Take in new material.
                 process            Process random data.
                 dance              Like no one is watching.
+                sub                A subcommand for wrapping other
+                                   subcommands.
             """)
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -895,7 +1048,7 @@ class ArgparseAppRunCommandTest(BaseApp):
         choices = "', '".join(
             (
                 'generate-report', 'put-on-hat', 'remove-shoes',
-                'ingest-new-material', 'process', 'dance'))
+                'ingest-new-material', 'process', 'dance', 'sub'))
         choose = f"(choose from '{choices}')"
         expected = munge_expected(
             f"""
@@ -925,7 +1078,7 @@ class ArgparseAppRunCommandTest(BaseApp):
         choices = "', '".join(
             (
                 'generate-report', 'put-on-hat', 'remove-shoes',
-                'ingest-new-material', 'process', 'dance'))
+                'ingest-new-material', 'process', 'dance', 'sub'))
         choose = f"(choose from '{choices}')"
         expected = munge_expected(
             f"""
@@ -1009,6 +1162,87 @@ class ArgparseAppRunCommandTest(BaseApp):
     def test_dance_now(self):
         with self.assertRaisesRegex(AttributeError, 'issue #18'):
             sys.exit(self.my_app.run(['dance', '--now']))
+
+    def test_sub(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run(['sub']))
+
+        expected = munge_expected(
+            """
+            usage: test_sub sub [-h] <command> ...
+
+            A subcommand for wrapping other subcommands.
+
+            options:
+              -h, --help  show this help message and exit
+
+            Commands:
+              For more details: test_sub sub <command> --help
+
+              <command>   <command description>
+                atomic    A small feature.
+                marine    A boat that can do interesting things.
+                routine   A procedure to call.
+            """)
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 1)
+
+    def test_sub_atomic(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run(['sub', 'atomic']))
+        expected = 'I am a particle that makes up elements.\n'
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_sub_marine(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run(['sub', 'marine']))
+        expected = 'This boat can go underwater and fire weapons.\n'
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_sub_marine_change_depth(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(
+                self.my_app.run(
+                    'sub marine change-depth --depth 50 --rate 3'.split()))
+        expected = 'The boat will go to a depth of 50 meters at 3 m/s.\n'
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_sub_marine_fire(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run('--foo sub marine fire'.split()))
+
+        expected = 'Torpedoes away!  Also, args.foo=True.\n'
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
+
+    def test_sub_routine(self):
+        with self.assertRaises(
+                SystemExit) as result, contextlib.redirect_stdout(
+                    self.stdout), contextlib.redirect_stderr(self.stderr):
+            sys.exit(self.my_app.run('sub routine'.split()))
+
+        expected = 'A sub routine was called.\n'
+        self.assertEqual(self.stdout.getvalue(), expected)
+        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(result.exception.code, 0)
 
 
 if __name__ == '__main__':  # pragma: no cover

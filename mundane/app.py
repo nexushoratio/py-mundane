@@ -242,13 +242,8 @@ class ArgparseApp:
 
     @functools.cached_property
     def subparser(self) -> argparse._SubParsersAction:
-        """The command subparser for this class."""
-        return self._parser.add_subparsers(
-            title='Commands',
-            dest='name',
-            metavar='<command>',
-            help='<command description>',
-            description='For more details: %(prog)s <command> --help')
+        """The top-level command subparser for this class."""
+        return self.new_subparser(self._parser)
 
     @property
     def global_flags(self) -> argparse._ArgumentGroup:
@@ -272,6 +267,20 @@ class ArgparseApp:
     def dirs(self) -> platformdirs.api.PlatformDirsABC:
         """Accessor for a consistent PlatformsDirs."""
         return platformdirs.PlatformDirs(appname=self.appname)
+
+    def new_subparser(
+            self,
+            parser: argparse.ArgumentParser) -> argparse._SubParsersAction:
+        """Attach a new subparser to an existing parser.
+
+        This allows for sub-subcommands.
+        """
+        return parser.add_subparsers(
+            title='Commands',
+            dest='name',
+            metavar='<command>',
+            help='<command description>',
+            description='For more details: %(prog)s <command> --help')
 
     def new_shared_parser(self, name: str) -> argparse.ArgumentParser | None:
         """Register and return a new parser iff it does not already exist.
@@ -336,7 +345,10 @@ class ArgparseApp:
         self._after_parse_hooks.append(func)
 
     def register_command(
-            self, func: CommandFunc, **kwargs) -> argparse.ArgumentParser:
+            self,
+            func: CommandFunc,
+            subparser=None,
+            **kwargs) -> argparse.ArgumentParser:
         """Register a specific command.
 
         This method is typically called by a module's mundane_commands() hook.
@@ -365,6 +377,9 @@ class ArgparseApp:
             The result of add_parser() filled with information extracted from
             the function.
         """
+        if subparser is None:
+            subparser = self.subparser
+
         name = func.__name__.replace('_', '-')
         docstring = Docstring(func, self.width)
 
@@ -375,7 +390,7 @@ class ArgparseApp:
         }
         parser_args.update(kwargs)
 
-        parser = self.subparser.add_parser(name, **parser_args)
+        parser = subparser.add_parser(name, **parser_args)
         parser.set_defaults(func=func)
 
         return parser
