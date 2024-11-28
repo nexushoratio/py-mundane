@@ -371,6 +371,7 @@ class ArgparseApp:
 
         Args:
             func: The function to register.
+            subparser: The command will be attached to this subparser.
             kwargs: Passed directly to add_parser()
 
         Returns:
