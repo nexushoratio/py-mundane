@@ -116,6 +116,7 @@ class Docstring:
 
 CommandFunc: typing.TypeAlias = typing.Callable[[argparse.Namespace], int]
 NamespaceHook: typing.TypeAlias = typing.Callable[[argparse.Namespace], None]
+SubParser: typing.TypeAlias = argparse._SubParsersAction  # pylint: disable=protected-access
 
 
 class ArgparseApp:
@@ -241,7 +242,7 @@ class ArgparseApp:
         return self._parser
 
     @functools.cached_property
-    def subparser(self) -> argparse._SubParsersAction:
+    def subparser(self) -> SubParser:
         """The top-level command subparser for this class."""
         return self.new_subparser(self._parser)
 
@@ -268,9 +269,7 @@ class ArgparseApp:
         """Accessor for a consistent PlatformsDirs."""
         return platformdirs.PlatformDirs(appname=self.appname)
 
-    def new_subparser(
-            self,
-            parser: argparse.ArgumentParser) -> argparse._SubParsersAction:
+    def new_subparser(self, parser: argparse.ArgumentParser) -> SubParser:
         """Attach a new subparser to an existing parser.
 
         This allows for sub-subcommands.
@@ -347,7 +346,7 @@ class ArgparseApp:
     def register_command(
             self,
             func: CommandFunc,
-            subparser=None,
+            subparser: SubParser | None = None,
             **kwargs) -> argparse.ArgumentParser:
         """Register a specific command.
 
