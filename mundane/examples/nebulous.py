@@ -81,13 +81,16 @@ def mundane_commands(ctx: app.ArgparseApp):
     ctx.register_command(info)
     ctx.register_command(ingest, parents=[req_file])
 
-    parser = ctx.register_command(clean)
-    parser.add_argument(
-        '-i',
-        '--item',
-        action='store',
-        required=True,
-        help='An item to clean.')
+    # Demonstrate how a local flag or configuration could be reused across
+    # commands.
+    clean_args = ('-i', '--item')
+    clean_kwargs = {
+        'action': 'store',
+        'help': 'An item to clean.',
+    }
+    clean_flags = ctx.argparse_api.ArgumentParser(add_help=False)
+    clean_flags.add_argument(*clean_args, required=True, **clean_kwargs)
+    parser = ctx.register_command(clean, parents=[clean_flags])
 
     ctx.register_command(del_, name='del')
     ctx.register_command(two_words)

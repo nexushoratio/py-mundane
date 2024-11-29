@@ -41,13 +41,15 @@ def mundane_commands(ctx: app.ArgparseApp):
 
     ctx.register_command(process)
 
-    parser = ctx.register_command(dance)
-    parser.add_argument(
-        '-n',
-        '--now',
-        default=False,
-        action=ctx.argparse_api.BooleanOptionalAction,
-        help='Now or later. (default: %(default)s)')
+    dance_flags = ctx.argparse_api.ArgumentParser(add_help=False)
+    dance_args = ('-n', '--now')
+    dance_kwargs = {
+        'default': False,
+        'action': ctx.argparse_api.BooleanOptionalAction,
+        'help': 'Now or later. (default: %(default)s)',
+    }
+    dance_flags.add_argument(*dance_args, **dance_kwargs)
+    parser = ctx.register_command(dance, parents=[dance_flags])
 
 
 def ingest_new_material(args: argparse.Namespace) -> int:
