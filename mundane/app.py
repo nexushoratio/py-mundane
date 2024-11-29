@@ -47,6 +47,13 @@ class ArgparseKwargs(typing.TypedDict, total=False):
     description: str | None
 
 
+class AddArgumentKwargs(typing.TypedDict, total=False):
+    """Exists to make typing happy."""
+    action: str
+    help: str
+    default: typing.Any
+
+
 class Docstring:
     """A reflowed docstring.
 
@@ -289,6 +296,14 @@ class ArgparseApp:
             metavar='<command>',
             help='<command description>',
             description='For more details: %(prog)s <command> --help')
+
+    def new_parser(self) -> argparse.ArgumentParser:
+        """Return a new parser with sensible defaults.
+
+        This can be useful when flags might be reused inside a call to
+        mundane_commands, but not across modules.
+        """
+        return argparse.ArgumentParser(add_help=False)
 
     def new_shared_parser(self, name: str) -> argparse.ArgumentParser | None:
         """Register and return a new parser iff it does not already exist.

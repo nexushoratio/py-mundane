@@ -41,9 +41,9 @@ def mundane_commands(ctx: app.ArgparseApp):
 
     ctx.register_command(process)
 
-    dance_flags = ctx.argparse_api.ArgumentParser(add_help=False)
+    dance_flags = ctx.new_parser()
     dance_args = ('-n', '--now')
-    dance_kwargs = {
+    dance_kwargs: app.AddArgumentKwargs = {
         'default': False,
         'action': ctx.argparse_api.BooleanOptionalAction,
         'help': 'Now or later. (default: %(default)s)',
