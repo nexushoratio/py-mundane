@@ -101,9 +101,10 @@ def mundane_commands(ctx: app.ArgparseApp):
     ctx.register_command(hostname, subparser=subparser)
     ctx.register_command(permissions, subparser=subparser)
 
-    # Demonstrate how to have a subcommand that only displays usage.
-    parser = ctx.register_command(roger, usage_only=True)
-    subparser = ctx.new_subparser(parser)
+    # Demonstrate how to have a subcommand that only displays usage.  Also
+    # note that there is no real need for the intermediate variable.
+    subparser = ctx.new_subparser(
+        ctx.register_command(roger, usage_only=True))
     ctx.register_command(roger, subparser=subparser)
 
 
