@@ -90,7 +90,7 @@ class LogHandler(logging.FileHandler):
         return handle
 
 
-class LogLevel(argparse.Action):  # pylint: disable=too-few-public-methods
+class LogLevel(argparse.Action):
     """Callback action to tweak log settings during flag parsing."""
 
     def __init__(self, *args, log_level: str | None = None, **kwargs):
