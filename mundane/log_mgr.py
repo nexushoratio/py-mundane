@@ -22,7 +22,8 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 
 LOG_FORMAT = (
     '%(levelname).1s%(asctime)s: %(filename)s:%(lineno)d'
-    '(%(funcName)s)] {%(name)s} %(message)s')
+    '(%(funcName)s)] {%(name)s} %(message)s'
+)
 
 
 class LogHandler(logging.FileHandler):
@@ -55,7 +56,8 @@ class LogHandler(logging.FileHandler):
         self.short_filename = f'{progname}.log'
         self.long_filename = (
             f'{self.short_filename}.{platform.node()}'
-            f'.{process.username()}.{now}.{process.pid}')
+            f'.{process.username()}.{now}.{process.pid}'
+        )
         self.output_dir = output_dir
 
         super().__init__(self._base_path, delay=True)
@@ -69,7 +71,8 @@ class LogHandler(logging.FileHandler):
     def output_dir(self, value):
         self._output_dir = value
         self.symlink_path = pathlib.Path(
-            self._output_dir, self.short_filename).absolute()
+            self._output_dir, self.short_filename
+        ).absolute()
 
         self._base_path = pathlib.Path(self._output_dir,
                                        self.long_filename).absolute()
@@ -108,7 +111,8 @@ class LogLevel(argparse.Action):
         if self.log_level is None:
             root_logger = logging.getLogger()
             self.log_level = logging.getLevelName(
-                root_logger.getEffectiveLevel())
+                root_logger.getEffectiveLevel()
+            )
 
         if 'help' in kwargs:
             kwargs['help'] += ' (Default: %(_log_level)s)'
@@ -185,7 +189,8 @@ def mundane_global_flags(argp_app: app.ArgparseApp):
     # TODO: switch to getLevelNamesMapping() once minver = 3.11
     choices = tuple(
         name for level, name in sorted(logging._levelToName.items())  # pylint: disable=protected-access
-        if level)
+        if level
+    )
 
     argp_app.global_flags.add_argument(
         '-L',
@@ -193,13 +198,15 @@ def mundane_global_flags(argp_app: app.ArgparseApp):
         action=LogLevel,
         help='Minimal log level',
         default=argparse.SUPPRESS,
-        choices=choices)
+        choices=choices
+    )
 
     argp_app.global_flags.add_argument(
         '--log-dir',
         action=LogDir,
         help='Logging directory',
-        default=argparse.SUPPRESS)
+        default=argparse.SUPPRESS
+    )
 
 
 def activate(appname: str, output_dir: str):

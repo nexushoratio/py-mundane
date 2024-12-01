@@ -107,7 +107,8 @@ class Docstring:
                 else:
                     if current:
                         yield textwrap.fill(
-                            ' '.join(current), width=self._width)
+                            ' '.join(current), width=self._width
+                        )
                         current.clear()
             if current:
                 yield textwrap.fill(' '.join(current), width=self._width)
@@ -207,10 +208,11 @@ class ArgparseApp:
     GLOBAL_FLAGS = 'Global flags'
 
     def __init__(
-            self,
-            use_log_mgr: bool = False,
-            use_docstring_for_description: typing.Any | None = None,
-            **kwargs: typing.Unpack[ArgparseKwargs]):
+        self,
+        use_log_mgr: bool = False,
+        use_docstring_for_description: typing.Any | None = None,
+        **kwargs: typing.Unpack[ArgparseKwargs]
+    ):
         """Initialize with the application.
 
         Args:
@@ -227,13 +229,15 @@ class ArgparseApp:
         }
         if use_docstring_for_description:
             parser_args['description'] = Docstring(
-                use_docstring_for_description, self.width).description
+                use_docstring_for_description, self.width
+            ).description
 
         parser_args.update(typing.cast(ArgparseKwargs, kwargs))
 
         self._parser = argparse.ArgumentParser(**parser_args)
         self._global_flags = self._parser.add_argument_group(
-            self.GLOBAL_FLAGS)
+            self.GLOBAL_FLAGS
+        )
         self._global_flags.add_argument('-h', '--help', action='help')
         self._shared_parsers: dict[str, argparse.ArgumentParser] = dict()
         self._after_parse_hooks: list[NamespaceHook] = list()
@@ -295,7 +299,8 @@ class ArgparseApp:
             dest='name',
             metavar='<command>',
             help='<command description>',
-            description='For more details: %(prog)s <command> --help')
+            description='For more details: %(prog)s <command> --help'
+        )
 
     def new_parser(self) -> argparse.ArgumentParser:
         """Return a new parser with sensible defaults.
@@ -326,7 +331,8 @@ class ArgparseApp:
         """
         if name not in self._shared_parsers:
             self._shared_parsers[name] = argparse.ArgumentParser(
-                add_help=False)
+                add_help=False
+            )
             return self._shared_parsers[name]
         return None
 
@@ -368,12 +374,13 @@ class ArgparseApp:
         self._after_parse_hooks.append(func)
 
     def register_command(
-            self,
-            func: CommandFunc,
-            name: str | None = None,
-            usage_only: bool = False,
-            subparser: SubParser | None = None,
-            **kwargs) -> argparse.ArgumentParser:
+        self,
+        func: CommandFunc,
+        name: str | None = None,
+        usage_only: bool = False,
+        subparser: SubParser | None = None,
+        **kwargs
+    ) -> argparse.ArgumentParser:
         """Register a specific command.
 
         This method is typically called by a module's mundane_commands() hook.
@@ -431,7 +438,8 @@ class ArgparseApp:
         return parser
 
     def _register_module_via_hooks(
-            self, hook_name: str, modules: typing.Iterable[types.ModuleType]):
+        self, hook_name: str, modules: typing.Iterable[types.ModuleType]
+    ):
         """Implements processing of modules to maybe execute a hook."""
         for module in modules:
             register_func = getattr(module, hook_name, None)
@@ -439,7 +447,8 @@ class ArgparseApp:
                 register_func(self)
 
     def register_global_flags(
-            self, modules: typing.Iterable[types.ModuleType]):
+        self, modules: typing.Iterable[types.ModuleType]
+    ):
         """Register global flags by calling 'MODULE.mundane_global_flags()'.
 
         Global flags are typically used for setting things like verbosity,
@@ -462,7 +471,8 @@ class ArgparseApp:
         self._register_module_via_hooks('mundane_global_flags', modules)
 
     def register_shared_flags(
-            self, modules: typing.Iterable[types.ModuleType]):
+        self, modules: typing.Iterable[types.ModuleType]
+    ):
         """Register shared flags by calling 'MODULE.mundane_shared_flags()'.
 
         When using applications with commands, sometimes it is nice to use the
@@ -519,7 +529,9 @@ class ArgparseApp:
             logging.debug(
                 'Max memory used: %s',
                 humanize.naturalsize(
-                    resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+                    resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+                )
+            )
             logging.debug('Finished. (%d)', ret or 0)
         else:
             self.parser.print_help()

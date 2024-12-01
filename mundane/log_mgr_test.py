@@ -112,7 +112,8 @@ class LogHandlerPropertyTest(BaseLogging):
         super().setUp()
 
         self.handler = log_mgr.LogHandler(
-            self.mee, str(pathlib.PurePath('default', 'path')))
+            self.mee, str(pathlib.PurePath('default', 'path'))
+        )
 
     def check_properties(self, expected_dir: str):
         """Shared checks."""
@@ -126,10 +127,12 @@ class LogHandlerPropertyTest(BaseLogging):
 
         self.assertEqual(
             self.handler.symlink_path,
-            out_dir.joinpath(self.handler.short_filename).absolute())
+            out_dir.joinpath(self.handler.short_filename).absolute()
+        )
         self.assertEqual(
             self.handler.baseFilename,
-            str(out_dir.joinpath(self.handler.long_filename).absolute()))
+            str(out_dir.joinpath(self.handler.long_filename).absolute())
+        )
 
     def test_default_properties(self):
         self.check_properties(str(pathlib.PurePath('default', 'path')))
@@ -170,14 +173,17 @@ class LogHandlerTest(BaseLogging):
         self.logger.info('Logged from %s', self.id())
 
         self.assertTrue(
-            self.handler.symlink_path.is_symlink(), 'should now exist')
+            self.handler.symlink_path.is_symlink(), 'should now exist'
+        )
 
     def test_symlink_dst_already_exists(self):
         self.handler.symlink_path.touch()
         self.assertTrue(
-            self.handler.symlink_path.exists(), 'exists sanity check')
+            self.handler.symlink_path.exists(), 'exists sanity check'
+        )
         self.assertFalse(
-            self.handler.symlink_path.is_symlink(), 'symlink sanity check')
+            self.handler.symlink_path.is_symlink(), 'symlink sanity check'
+        )
 
         self.logger.info('Logged from %s', self.id())
 
@@ -186,7 +192,8 @@ class LogHandlerTest(BaseLogging):
     def test_symlink_dst_is_directory(self):
         self.handler.symlink_path.mkdir()
         self.assertTrue(
-            self.handler.symlink_path.is_dir(), 'dir sanity check')
+            self.handler.symlink_path.is_dir(), 'dir sanity check'
+        )
 
         self.logger.info('Logged from %s', self.id())
 
@@ -215,8 +222,8 @@ class LogLevelTest(BaseLogging):
         self.assertEqual(logger.level, 0)
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                SystemExit) as result, contextlib.redirect_stdout(self.stdout
+                                                                  ):
             self.parser.parse_args(['--help'])
 
         expected = munge_expected(
@@ -226,7 +233,8 @@ class LogLevelTest(BaseLogging):
             options:
               -h, --help  show this help message and exit
               -x X
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
@@ -238,12 +246,13 @@ class LogLevelTest(BaseLogging):
         logger.setLevel(log_mgr.logging.INFO)
 
         self.parser.add_argument(
-            '-x', action=log_mgr.LogLevel, help='My help')
+            '-x', action=log_mgr.LogLevel, help='My help'
+        )
         self.assertEqual(logger.level, log_mgr.logging.INFO)
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                SystemExit) as result, contextlib.redirect_stdout(self.stdout
+                                                                  ):
             self.parser.parse_args(['--help'])
 
         expected = munge_expected(
@@ -253,7 +262,8 @@ class LogLevelTest(BaseLogging):
             options:
               -h, --help  show this help message and exit
               -x X        My help (Default: INFO)
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
@@ -265,12 +275,13 @@ class LogLevelTest(BaseLogging):
         logger.setLevel(0)
 
         self.parser.add_argument(
-            '-x', action=log_mgr.LogLevel, choices=('INFO', 'WARNING'))
+            '-x', action=log_mgr.LogLevel, choices=('INFO', 'WARNING')
+        )
         self.assertEqual(logger.level, 0)
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                SystemExit) as result, contextlib.redirect_stdout(self.stdout
+                                                                  ):
             self.parser.parse_args(['--help'])
 
         expected = munge_expected(
@@ -280,7 +291,8 @@ class LogLevelTest(BaseLogging):
             options:
               -h, --help         show this help message and exit
               -x {INFO,WARNING}
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
@@ -295,12 +307,13 @@ class LogLevelTest(BaseLogging):
             '-x',
             action=log_mgr.LogLevel,
             choices=('INFO', 'WARNING', 'CRITICAL'),
-            help='My other help')
+            help='My other help'
+        )
         self.assertEqual(logger.level, log_mgr.logging.INFO)
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                SystemExit) as result, contextlib.redirect_stdout(self.stdout
+                                                                  ):
             self.parser.parse_args(['--help'])
 
         expected = munge_expected(
@@ -312,7 +325,8 @@ class LogLevelTest(BaseLogging):
               -h, --help            show this help message and exit
               -x {INFO,WARNING,CRITICAL}
                                     My other help (Default: INFO)
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
@@ -328,12 +342,13 @@ class LogLevelTest(BaseLogging):
             action=log_mgr.LogLevel,
             help='My unusual help',
             default=log_mgr.argparse.SUPPRESS,
-            log_level='WARNING')
+            log_level='WARNING'
+        )
         self.assertEqual(logger.level, log_mgr.logging.WARNING)
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                SystemExit) as result, contextlib.redirect_stdout(self.stdout
+                                                                  ):
             self.parser.parse_args(['--help'])
 
         expected = munge_expected(
@@ -343,7 +358,8 @@ class LogLevelTest(BaseLogging):
             options:
               -h, --help  show this help message and exit
               -x X        My unusual help (Default: WARNING)
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
@@ -371,8 +387,8 @@ class LogDirTest(BaseLogging):
         self.parser.add_argument('-d', action=log_mgr.LogDir)
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                SystemExit) as result, contextlib.redirect_stdout(self.stdout
+                                                                  ):
             self.parser.parse_args(['--help'])
 
         expected = munge_expected(
@@ -382,7 +398,8 @@ class LogDirTest(BaseLogging):
             options:
               -h, --help  show this help message and exit
               -d D
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
         self.assertEqual(self.handler.output_dir, orig_out_dir)
@@ -394,11 +411,12 @@ class LogDirTest(BaseLogging):
     def test_with_help(self):
         orig_out_dir = self.handler.output_dir
         self.parser.add_argument(
-            '-d', action=log_mgr.LogDir, help='My dir help')
+            '-d', action=log_mgr.LogDir, help='My dir help'
+        )
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                SystemExit) as result, contextlib.redirect_stdout(self.stdout
+                                                                  ):
             self.parser.parse_args(['--help'])
 
         expected = munge_expected(
@@ -408,7 +426,8 @@ class LogDirTest(BaseLogging):
             options:
               -h, --help  show this help message and exit
               -d D        My dir help (Default: {orig_out_dir})
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
@@ -422,15 +441,17 @@ class LogDirTest(BaseLogging):
             action=log_mgr.LogDir,
             help=help_msg,
             default=log_mgr.argparse.SUPPRESS,
-            log_dir=out_dir)
+            log_dir=out_dir
+        )
 
         self.assertEqual(
             self.handler.output_dir, out_dir,
-            'Registering the flag was enough to change the directory.')
+            'Registering the flag was enough to change the directory.'
+        )
 
         with self.assertRaises(
-                SystemExit) as result, contextlib.redirect_stdout(
-                    self.stdout):
+                SystemExit) as result, contextlib.redirect_stdout(self.stdout
+                                                                  ):
             self.parser.parse_args(['--help'])
 
         expected = munge_expected(
@@ -440,7 +461,8 @@ class LogDirTest(BaseLogging):
             options:
               -h, --help  show this help message and exit
               -d D        {help_msg} (Default: {out_dir})
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
@@ -474,10 +496,12 @@ class FlagsTest(BaseLogging):
         super().setUp()
 
         log_mgr.activate(
-            self.id(), str(pathlib.PurePath('well', 'known', 'path')))
+            self.id(), str(pathlib.PurePath('well', 'known', 'path'))
+        )
         self.handler = log_mgr.logging.getLogger().handlers[0]
         self.handler.output_dir = str(
-            pathlib.PurePath('well', 'known', 'path'))
+            pathlib.PurePath('well', 'known', 'path')
+        )
 
     def test_default_dash_h(self):
         my_app = app.ArgparseApp()
@@ -502,7 +526,8 @@ class FlagsTest(BaseLogging):
                                     WARNING)
               --log-dir LOG_DIR     Logging directory (Default:
                                     well/known/path)
-            """)
+            """
+        )
         self.assertEqual(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
@@ -510,7 +535,8 @@ class FlagsTest(BaseLogging):
         # between info and warning
         log_mgr.logging.addLevelName(
             (log_mgr.logging.INFO + log_mgr.logging.WARNING + 2) // 2,
-            'Custom')
+            'Custom'
+        )
 
         my_app = app.ArgparseApp()
         my_app.register_global_flags([log_mgr])
@@ -534,7 +560,8 @@ class FlagsTest(BaseLogging):
                                     WARNING)
               --log-dir LOG_DIR     Logging directory (Default:
                                     well/known/path)
-            """)
+            """
+        )
         self.assertEqual(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
@@ -550,13 +577,15 @@ class FlagsTest(BaseLogging):
         args = my_app.parser.parse_args('-L INFO'.split())
 
         self.assertEqual(
-            root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
+            root_logger.getEffectiveLevel(), log_mgr.logging.INFO
+        )
         self.assertEqual(vars(args), {}, 'log level should not be here')
 
     def test_custom_changes_logging_level(self):
         # between info and warning
         log_mgr.logging.addLevelName(
-            (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'Xyzzy')
+            (log_mgr.logging.INFO + log_mgr.logging.WARNING) // 2, 'Xyzzy'
+        )
 
         root_logger = log_mgr.logging.getLogger()
         root_logger.setLevel(0)
@@ -569,7 +598,8 @@ class FlagsTest(BaseLogging):
         my_app.parser.parse_args('-L Xyzzy'.split())
 
         self.assertGreater(
-            root_logger.getEffectiveLevel(), log_mgr.logging.INFO)
+            root_logger.getEffectiveLevel(), log_mgr.logging.INFO
+        )
 
     def test_log_dir_flag(self):
         my_app = app.ArgparseApp()

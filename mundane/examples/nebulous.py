@@ -46,7 +46,8 @@ def mundane_global_flags(ctx: app.ArgparseApp):
         '--db-dir',
         help='Database directory (Default: %(default)s)',
         action='store',
-        default=ctx.dirs.user_data_dir)
+        default=ctx.dirs.user_data_dir
+    )
 
     # This is a good place to add a hook as well.
     ctx.register_after_parse_hook(hook_one)
@@ -65,9 +66,11 @@ def mundane_shared_flags(ctx: app.ArgparseApp):
             '--file',
             action='store',
             required=True,
-            help='A filename to process.')
+            help='A filename to process.'
+        )
         parser.add_argument(
-            '-u', '--unused', action='store', help='This flag is not used.')
+            '-u', '--unused', action='store', help='This flag is not used.'
+        )
     else:
         raise Error('Oh, dear!  Someone stole our parser name!')
 
@@ -104,7 +107,8 @@ def mundane_commands(ctx: app.ArgparseApp):
     # Demonstrate how to have a subcommand that only displays usage.  Also
     # note that there is no real need for the intermediate variable.
     subparser = ctx.new_subparser(
-        ctx.register_command(roger, usage_only=True))
+        ctx.register_command(roger, usage_only=True)
+    )
     ctx.register_command(roger, subparser=subparser)
 
 
@@ -155,11 +159,13 @@ def ingest(args: argparse.Namespace) -> int:
     if args.unused:
         print(
             'I said, --unused is not used.  Why did you'
-            f' pass in "{args.unused}"?')
+            f' pass in "{args.unused}"?'
+        )
     else:
         print(
             f'I will read "{args.file}"'
-            f' and put the content into "{args.dbc}".')
+            f' and put the content into "{args.dbc}".'
+        )
 
     return 0
 
@@ -193,7 +199,8 @@ def two_words(args: argparse.Namespace) -> int:
     """Print out two words."""
     print('Two words.')
     print(
-        'But, note that the command has a "-" but the function name has "_".')
+        'But, note that the command has a "-" but the function name has "_".'
+    )
 
     return 0
 
@@ -238,7 +245,8 @@ def main() -> int:
     """A nebulous app."""
     # Use this module for the help output.
     nebulous_app = app.ArgparseApp(
-        use_log_mgr=True, use_docstring_for_description=sys.modules[__name__])
+        use_log_mgr=True, use_docstring_for_description=sys.modules[__name__]
+    )
 
     # Typically this would be a number of imported modules, but for this demo,
     # we will just use ourself.

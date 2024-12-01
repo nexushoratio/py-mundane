@@ -82,7 +82,8 @@ class DocstringTest(unittest.TestCase):
         )
         self.assertEqual(
             doc.summary,
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit.')
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
+        )
         self.assertEqual(doc.description, '\n'.join(expected_description))
 
     def test_full_wide_width(self):
@@ -107,7 +108,8 @@ class DocstringTest(unittest.TestCase):
         )
         self.assertEqual(
             doc.summary,
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit.')
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
+        )
         self.assertEqual(doc.description, '\n'.join(expected_description))
 
     def test_full_narrow_width(self):
@@ -139,7 +141,8 @@ class DocstringTest(unittest.TestCase):
         self.assertEqual(doc.description, '\n'.join(expected_description))
         self.assertEqual(
             doc.summary,
-            'Lorem ipsum dolor sit amet, consectetur\nadipiscing elit.')
+            'Lorem ipsum dolor sit amet, consectetur\nadipiscing elit.'
+        )
 
     def test_missing_blank_line_after_summary(self):
         """This is my summary.
@@ -291,17 +294,21 @@ class ArgparseAppPropertiesTest(BaseApp):
 
     def test_global_flags(self):
         self.assertIsInstance(
-            self.my_app.global_flags, app.argparse._ArgumentGroup)  # pylint: disable=protected-access
+            self.my_app.global_flags,
+            app.argparse._ArgumentGroup  # pylint: disable=protected-access
+        )
 
     def test_width(self):
         self.assertEqual(self.my_app.width, 61)
 
     def test_dirs(self):
         self.assertIsInstance(
-            self.my_app.dirs, app.platformdirs.api.PlatformDirsABC)
+            self.my_app.dirs, app.platformdirs.api.PlatformDirsABC
+        )
         self.assertEqual(
             self.my_app.dirs.user_data_dir,
-            app.platformdirs.user_data_dir('test_dirs'))
+            app.platformdirs.user_data_dir('test_dirs')
+        )
 
 
 class ArgparseAppParsingTest(BaseApp):
@@ -333,7 +340,8 @@ class ArgparseAppParsingTest(BaseApp):
 
             Global flags:
               -h, --help
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -351,7 +359,8 @@ class ArgparseAppParsingTest(BaseApp):
 
             Global flags:
               -h, --help
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -367,7 +376,8 @@ class ArgparseAppParsingTest(BaseApp):
             """
             usage: test_unknown_arg [-h]
             test_unknown_arg: error: unrecognized arguments: -k
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), '')
         self.assertEqual(self.stderr.getvalue(), expected)
         self.assertEqual(result.exception.code, 2)
@@ -395,7 +405,8 @@ class ArgparseAppCustomizationsTest(BaseApp):
               -h, --help
 
             This is an epilog.
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -425,7 +436,8 @@ class ArgparseAppParsingWithLogMgrTest(BaseApp):
                                     Minimal log level (Default: WARNING)
               --log-dir LOG_DIR     Logging directory (Default:
                                     {log_dir})
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -456,7 +468,8 @@ class ArgparseAppWithDocstringTest(BaseApp):
         """This is a simple docstring."""
 
         my_app = app.ArgparseApp(
-            use_docstring_for_description=self.test_simple_docstring)
+            use_docstring_for_description=self.test_simple_docstring
+        )
 
         with self.assertRaises(
                 SystemExit) as result, contextlib.redirect_stdout(
@@ -471,7 +484,8 @@ class ArgparseAppWithDocstringTest(BaseApp):
 
             Global flags:
               -h, --help
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -485,7 +499,8 @@ class ArgparseAppWithDocstringTest(BaseApp):
         """
 
         my_app = app.ArgparseApp(
-            use_docstring_for_description=self.test_longer_docstring)
+            use_docstring_for_description=self.test_longer_docstring
+        )
 
         with self.assertRaises(
                 SystemExit) as result, contextlib.redirect_stdout(
@@ -505,7 +520,8 @@ class ArgparseAppWithDocstringTest(BaseApp):
 
             Global flags:
               -h, --help
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -526,7 +542,8 @@ class ArgparseAppWithDocstringTest(BaseApp):
 
             Global flags:
               -h, --help
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -554,7 +571,8 @@ class ArgparseAppRegisterFlagsTest(BaseApp):
             Global flags:
               -h, --help
               --foo       Enable foo-ing.
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -567,7 +585,8 @@ class ArgparseAppRegisterFlagsTest(BaseApp):
 
         self.assertRaisesRegex(
             Exception, 'called again', self.my_app.register_shared_flags,
-            [flags_one, flags_two])
+            [flags_one, flags_two]
+        )
 
 
 class ArgparseAppRegisterCommandsTest(BaseApp):
@@ -605,7 +624,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 dance              Like no one is watching.
                 sub                A subcommand for wrapping other
                                    subcommands.
-            """)
+            """
+        )
 
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -623,7 +643,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
             options:
               -h, --help  show this help message and exit
-            """)
+            """
+        )
 
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -646,7 +667,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                                     The xyzzy input.
               -k, --keep, --no-keep
                                     Keep intermediates.
-            """)
+            """
+        )
 
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
@@ -669,7 +691,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
             options:
               -h, --help  show this help message and exit
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -697,7 +720,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
               -h, --help            show this help message and exit
               -f FILENAME, --filename FILENAME
                                     Filename to ingest.
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -716,7 +740,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
             options:
               -h, --help  show this help message and exit
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -740,7 +765,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
             options:
               -h, --help           show this help message and exit
               -n, --now, --no-now  Now or later. (default: False)
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -768,7 +794,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 class     Deriving from a super.
                 marine    A boat that can do interesting things.
                 routine   A procedure to call.
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -787,7 +814,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
             options:
               -h, --help  show this help message and exit
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -814,7 +842,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 change-depth
                             Move to a new depth.
                 fire        Fire a weapon.
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -824,7 +853,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 SystemExit) as result, contextlib.redirect_stdout(
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(
-                ['sub', 'marine', 'change-depth', '-h'])
+                ['sub', 'marine', 'change-depth', '-h']
+            )
 
         expected = munge_expected(
             f"""
@@ -837,7 +867,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
               -h, --help     show this help message and exit
               --rate RATE    The rate of change in meters/second.
               --depth DEPTH  Cruising depth in meters. (default: 0)
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -856,7 +887,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
             options:
               -h, --help  show this help message and exit
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -875,7 +907,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
             options:
               -h, --help  show this help message and exit
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -889,11 +922,13 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 'func': flags_one.put_on_hat,
                 'xyzzy': 'foo',
                 'keep': None,
-            })
+            }
+        )
 
     def test_put_on_hat_bar(self):
         args = self.my_app.parser.parse_args(
-            ['put-on-hat', '--xyzzy', 'bar', '-k'])
+            ['put-on-hat', '--xyzzy', 'bar', '-k']
+        )
 
         self.assertEqual(
             vars(args), {
@@ -901,11 +936,13 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 'func': flags_one.put_on_hat,
                 'xyzzy': 'bar',
                 'keep': True,
-            })
+            }
+        )
 
     def test_put_on_hat_bar_no_keep(self):
         args = self.my_app.parser.parse_args(
-            ['put-on-hat', '--xyzzy', 'bar', '--no-keep'])
+            ['put-on-hat', '--xyzzy', 'bar', '--no-keep']
+        )
 
         self.assertEqual(
             vars(args), {
@@ -913,7 +950,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 'func': flags_one.put_on_hat,
                 'xyzzy': 'bar',
                 'keep': False,
-            })
+            }
+        )
 
     def test_dance(self):
         args = self.my_app.parser.parse_args(['dance'])
@@ -923,11 +961,13 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 'name': 'dance',
                 'func': flags_two.dance,
                 'now': False
-            })
+            }
+        )
 
     def test_sub_marine_change_depth(self):
         args = self.my_app.parser.parse_args(
-            ['sub', 'marine', 'change-depth', '--rate', '10'])
+            ['sub', 'marine', 'change-depth', '--rate', '10']
+        )
 
         self.assertEqual(
             vars(args), {
@@ -935,7 +975,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 'func': flags_three.change_depth,
                 'rate': 10,
                 'depth': 0,
-            })
+            }
+        )
 
 
 class ArgparseAppRunCommandTest(BaseApp):
@@ -975,7 +1016,8 @@ class ArgparseAppRunCommandTest(BaseApp):
                 dance              Like no one is watching.
                 sub                A subcommand for wrapping other
                                    subcommands.
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(retcode, os.EX_USAGE)
@@ -1032,7 +1074,8 @@ class ArgparseAppRunCommandTest(BaseApp):
                 dance              Like no one is watching.
                 sub                A subcommand for wrapping other
                                    subcommands.
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -1048,14 +1091,17 @@ class ArgparseAppRunCommandTest(BaseApp):
         choices = "', '".join(
             (
                 'generate-report', 'put-on-hat', 'remove-shoes',
-                'ingest-new-material', 'process', 'dance', 'sub'))
+                'ingest-new-material', 'process', 'dance', 'sub'
+            )
+        )
         choose = f"(choose from '{choices}')"
         expected = munge_expected(
             f"""
             usage: {self.mee} [-h] [--foo]
                                                     {cmd} ...
             {self.mee}: error: argument {cmd}: invalid choice: '{bogus}' {choose}
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), '')
         self.assertEqual(self.stderr.getvalue(), expected)
         self.assertEqual(result.exception.code, 2)
@@ -1078,14 +1124,17 @@ class ArgparseAppRunCommandTest(BaseApp):
         choices = "', '".join(
             (
                 'generate-report', 'put-on-hat', 'remove-shoes',
-                'ingest-new-material', 'process', 'dance', 'sub'))
+                'ingest-new-material', 'process', 'dance', 'sub'
+            )
+        )
         choose = f"(choose from '{choices}')"
         expected = munge_expected(
             f"""
             usage: {self.mee} [-h] [--foo]
                                                     {cmd} ...
             {self.mee}: error: argument {cmd}: invalid choice: 'bogosity' {choose}
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), '')
         self.assertEqual(self.stderr.getvalue(), expected)
         self.assertEqual(result.exception.code, 2)
@@ -1113,7 +1162,8 @@ class ArgparseAppRunCommandTest(BaseApp):
             """
             removing shoes because remove-shoes
             Also: Foo was False
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 3)
@@ -1129,7 +1179,8 @@ class ArgparseAppRunCommandTest(BaseApp):
             """
             removing shoes because remove-shoes
             Also: Foo was True
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 3)
@@ -1186,7 +1237,8 @@ class ArgparseAppRunCommandTest(BaseApp):
                 class     Deriving from a super.
                 marine    A boat that can do interesting things.
                 routine   A procedure to call.
-            """)
+            """
+        )
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, os.EX_USAGE)
@@ -1227,7 +1279,9 @@ class ArgparseAppRunCommandTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(
                 self.my_app.run(
-                    'sub marine change-depth --depth 50 --rate 3'.split()))
+                    'sub marine change-depth --depth 50 --rate 3'.split()
+                )
+            )
         expected = 'The boat will go to a depth of 50 meters at 3 m/s.\n'
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')

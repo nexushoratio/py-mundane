@@ -19,12 +19,14 @@ def mundane_shared_flags(ctx: app.ArgparseApp):
             '--xyzzy',
             action='store',
             required=True,
-            help='The xyzzy input.')
+            help='The xyzzy input.'
+        )
         parser.add_argument(
             '-k',
             '--keep',
             action=ctx.argparse_api.BooleanOptionalAction,
-            help='Keep intermediates.')
+            help='Keep intermediates.'
+        )
     else:
         raise Exception('called again')  # pylint: disable=broad-exception-raised
 
@@ -37,7 +39,8 @@ def mundane_commands(ctx: app.ArgparseApp):
         '--filename',
         action='store',
         required=True,
-        help='Filename to ingest.')
+        help='Filename to ingest.'
+    )
 
     ctx.register_command(process)
 

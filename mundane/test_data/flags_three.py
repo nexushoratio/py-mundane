@@ -31,13 +31,15 @@ def mundane_commands(an_app: app.ArgparseApp):
         action='store',
         required=True,
         type=int,
-        help='The rate of change in meters/second.')
+        help='The rate of change in meters/second.'
+    )
     parser.add_argument(
         '--depth',
         action='store',
         default=0,
         type=int,
-        help='Cruising depth in meters. (default: %(default)d)')
+        help='Cruising depth in meters. (default: %(default)d)'
+    )
     an_app.register_command(fire, subparser=subparser)
 
 
@@ -68,7 +70,8 @@ def change_depth(args: argparse.Namespace) -> int:
 
     print(
         f'The boat will go to a depth of {args.depth} meters'
-        f' at {args.rate} m/s.')
+        f' at {args.rate} m/s.'
+    )
 
     return 0
 

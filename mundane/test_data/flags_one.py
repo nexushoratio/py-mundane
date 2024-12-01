@@ -13,7 +13,8 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 def mundane_global_flags(an_app: app.ArgparseApp):
     """Register global flags for the application."""
     an_app.global_flags.add_argument(
-        '--foo', action='store_true', help='Enable foo-ing.')
+        '--foo', action='store_true', help='Enable foo-ing.'
+    )
     an_app.register_after_parse_hook(check_foo)
 
 
@@ -30,7 +31,8 @@ def mundane_commands(an_app: app.ArgparseApp):
     an_app.register_command(
         remove_shoes,
         help='Shoes have custom help.',
-        description=shoes_description)
+        description=shoes_description
+    )
 
 
 def check_foo(args: argparse.Namespace) -> None:
