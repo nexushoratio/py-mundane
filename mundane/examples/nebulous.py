@@ -104,10 +104,14 @@ def mundane_commands(ctx: app.ArgparseApp):
     ctx.register_command(hostname, subparser=subparser)
     ctx.register_command(permissions, subparser=subparser)
 
-    # Demonstrate how to have a subcommand that only displays usage.  Also
-    # note that there is no real need for the intermediate variable.
+    # Demonstrate how to have a subcommand that only displays usage.  By
+    # convention, usage_only functions should end with a trailing underscore.
+    # Often the name of the function is also a good one for a local variable
+    # name, so differentiating it in this single location is easier than in
+    # some number of function.  Also that there is no real need for the
+    # intermediate variable.
     subparser = ctx.new_subparser(
-        ctx.register_command(roger, usage_only=True)
+        ctx.register_command(roger_, name='roger', usage_only=True)
     )
     ctx.register_command(roger, subparser=subparser)
 
@@ -233,8 +237,13 @@ def permissions(args: argparse.Namespace) -> int:
     return 0
 
 
+def roger_(args: argparse.Namespace) -> int:
+    """Acknowledge someone."""
+    raise Error('This function should never be called.')
+
+
 def roger(args: argparse.Namespace) -> int:
-    """Acknowledge Roger, but only the second time."""
+    """Acknowledge Roger."""
 
     print('Roger, Roger.')
 
