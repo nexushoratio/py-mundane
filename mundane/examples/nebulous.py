@@ -31,6 +31,7 @@ import sys
 import typing
 
 from mundane import app
+from mundane import constants
 
 if typing.TYPE_CHECKING:
     import argparse
@@ -153,6 +154,8 @@ def info(args: argparse.Namespace) -> int:
     level = logging.getLogger().level
     name = logging.getLevelName(level)
     print(f'Current logging level: {name}')
+
+    print(f'There are {constants.SECONDS_PER_DAY} seconds in a day.')
 
     return 0
 
