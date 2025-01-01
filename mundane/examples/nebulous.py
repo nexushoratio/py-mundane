@@ -75,12 +75,20 @@ def mundane_shared_flags(ctx: app.ArgparseApp):
     else:
         raise Error('Oh, dear!  Someone stole our parser name!')
 
+    # Using the "safe" version does not need the `if`
+    parser = ctx.safe_new_shared_parser('modern_style')
+    parser.add_argument('--modern')
+
 
 def mundane_commands(ctx: app.ArgparseApp):
     """Register commands."""
     req_file = ctx.get_shared_parser('req_file')
     if not req_file:
         raise Error('Oh, my!  No one registered our file parser!')
+
+    # Using the "safe" version does not need the `if`
+    modern_flags = ctx.safe_get_shared_parser('modern_style')
+    modern_flags.add_argument('--silly-flag')
 
     ctx.register_command(info)
     ctx.register_command(ingest, parents=[req_file])
