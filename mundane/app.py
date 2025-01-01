@@ -35,6 +35,18 @@ import platformdirs
 from mundane import log_mgr
 
 
+class Error(Exception):
+    """Base module exception."""
+
+
+class ExistingParser(Exception):
+    """Parser already registered."""
+
+
+class MissingParser(Exception):
+    """Parser not registered."""
+
+
 class AddArgumentKwargs(typing.TypedDict, total=False):
     """Exists to make typing happy."""
     action: str
@@ -336,6 +348,30 @@ class ArgparseApp:
             return self._shared_parsers[name]
         return None
 
+    def safe_new_shared_parser(self, name: str) -> argparse.ArgumentParser:
+        """Register and return a new parser it does not already exist.
+
+        Typically a module's mundane_shared_flags hook will call this to
+        create flags shared across modules.
+
+        foo_parser = my_app.safe_new_shared_parser('foo')
+        foo_parser.add_argument(...)
+        foo_parser.add_argument(...)
+
+        Args:
+            name: The key to find this parser.
+
+        Returns:
+            The newly created parser.
+
+        Raises:
+            ExistingParser: If parser was already registered.
+        """
+        parser = self.new_shared_parser(name)
+        if not parser:
+            raise ExistingParser(name)
+        return parser
+
     def get_shared_parser(self, name: str) -> argparse.ArgumentParser | None:
         """Returns a shared parser iff it already exists, else None.
 
@@ -350,6 +386,21 @@ class ArgparseApp:
           raise Exception('The parser "foo" was not shared!')
         """
         return self._shared_parsers.get(name)
+
+    def safe_get_shared_parser(self, name: str) -> argparse.ArgumentParser:
+        """Returns a existing shared parser.
+
+        Typically a module's mundane_commands hook will call this to get an
+        existing shared parser so that flags can be consistent between
+        commands.
+
+        foo_parser = my_app.safe_get_shared_parser('foo')
+        my_app.register_command(..., parents=[foo_parser])
+        """
+        parser = self.get_shared_parser(name)
+        if parser is None:
+            raise MissingParser(name)
+        return parser
 
     def register_after_parse_hook(self, func: NamespaceHook) -> None:
         """Register a function to be called after parsing flags.

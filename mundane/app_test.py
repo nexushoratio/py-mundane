@@ -589,6 +589,18 @@ class ArgparseAppRegisterFlagsTest(BaseApp):
     def test_missing_shared_flags(self):
         self.assertIsNone(self.my_app.get_shared_parser(self.mee))
 
+    def test_safe_duplicate_shared_flags(self):
+        self.assertIsNotNone(self.my_app.safe_new_shared_parser(self.mee))
+        with self.assertRaises(app.ExistingParser):
+            self.my_app.safe_new_shared_parser(self.mee)
+
+    def test_safe_missing_shared_flags(self):
+        self.my_app.new_shared_parser(self.mee)
+
+        self.assertIsNotNone(self.my_app.safe_get_shared_parser(self.mee))
+        with self.assertRaises(app.MissingParser):
+            self.my_app.safe_get_shared_parser(self.mee + 'too')
+
 
 class ArgparseAppRegisterCommandsTest(BaseApp):
 
