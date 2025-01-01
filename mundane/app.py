@@ -35,7 +35,14 @@ import platformdirs
 from mundane import log_mgr
 
 
-class ArgparseKwargs(typing.TypedDict, total=False):
+class AddArgumentKwargs(typing.TypedDict, total=False):
+    """Exists to make typing happy."""
+    action: str
+    help: str
+    default: typing.Any
+
+
+class _ArgparseKwargs(typing.TypedDict, total=False):
     """Exists to make typing happy."""
     prog: str
     usage: str | None
@@ -45,13 +52,6 @@ class ArgparseKwargs(typing.TypedDict, total=False):
     add_help: bool
     allow_abbrev: bool
     description: str | None
-
-
-class AddArgumentKwargs(typing.TypedDict, total=False):
-    """Exists to make typing happy."""
-    action: str
-    help: str
-    default: typing.Any
 
 
 class Docstring:
@@ -211,7 +211,7 @@ class ArgparseApp:
         self,
         use_log_mgr: bool = False,
         use_docstring_for_description: typing.Any | None = None,
-        **kwargs: typing.Unpack[ArgparseKwargs]
+        **kwargs: typing.Unpack[_ArgparseKwargs]
     ):
         """Initialize with the application.
 
@@ -223,7 +223,7 @@ class ArgparseApp:
             kwarg passed to ArgumentParser().
           kwargs: Passed directly to ArgumentParser().
         """
-        parser_args: ArgparseKwargs = {
+        parser_args: _ArgparseKwargs = {
             'formatter_class': argparse.RawDescriptionHelpFormatter,
             'add_help': False,
         }
@@ -232,7 +232,7 @@ class ArgparseApp:
                 use_docstring_for_description, self.width
             ).description
 
-        parser_args.update(typing.cast(ArgparseKwargs, kwargs))
+        parser_args.update(typing.cast(_ArgparseKwargs, kwargs))
 
         self._parser = argparse.ArgumentParser(**parser_args)
         self._global_flags = self._parser.add_argument_group(
