@@ -577,16 +577,17 @@ class ArgparseAppRegisterFlagsTest(BaseApp):
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
-    def test_shared_flags(self):
-
+    def test_register_shared_flags(self):
         self.my_app.register_shared_flags([flags_one, flags_two])
 
-        self.assertIn('foo', self.my_app._shared_parsers)  # pylint: disable=protected-access
+        self.assertIsNotNone(self.my_app.get_shared_parser('foo'))
 
-        self.assertRaisesRegex(
-            Exception, 'called again', self.my_app.register_shared_flags,
-            [flags_one, flags_two]
-        )
+    def test_duplicate_shared_flags(self):
+        self.assertIsNotNone(self.my_app.new_shared_parser(self.mee))
+        self.assertIsNone(self.my_app.new_shared_parser(self.mee))
+
+    def test_missing_shared_flags(self):
+        self.assertIsNone(self.my_app.get_shared_parser(self.mee))
 
 
 class ArgparseAppRegisterCommandsTest(BaseApp):
