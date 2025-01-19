@@ -10,10 +10,9 @@ import textwrap
 import unittest
 
 from mundane import app
-
 from mundane.test_data import flags_one
-from mundane.test_data import flags_two
 from mundane.test_data import flags_three
+from mundane.test_data import flags_two
 
 
 def munge_expected(old_s: str) -> str:

@@ -38,6 +38,9 @@ split_before_dot = true
 split_before_first_argument = true
 split_complex_comprehension = true
 
+[tool.isort]
+profile = 'google'
+
 [tool.pylint.main]
 fail-on = ['I']
 
@@ -85,6 +88,7 @@ passenv = PYTHON*
 sitepackages = True
 commands =
     python -m yapf -i -r mundane
+    python -m isort mundane
     python -m pylint mundane
     python -m mypy
     python -m coverage run
