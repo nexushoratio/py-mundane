@@ -8,6 +8,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+from unittest import mock
 
 from mundane import app
 from mundane import log_mgr
@@ -110,7 +111,9 @@ class LogHandlerPropertyTest(BaseLogging):
 
     def setUp(self):
         super().setUp()
+        self.set_handler()
 
+    def set_handler(self):
         self.handler = log_mgr.LogHandler(
             self.mee, str(pathlib.PurePath('default', 'path'))
         )
@@ -122,7 +125,8 @@ class LogHandlerPropertyTest(BaseLogging):
         self.assertTrue(out_dir.match(expected_dir))
         self.assertEqual(self.handler.short_filename, f'{self.mee}.log')
         # app.log.host.user.date-time.pid
-        pattern = fr'{self.mee}\.log\.\w+\.\w+\.\d{{8}}-\d{{6}}\.\d+$'
+        host = log_mgr.platform.node()
+        pattern = fr'{self.mee}\.log\.{host}\.\w+\.\d{{8}}-\d{{6}}\.\d+$'
         self.assertRegex(self.handler.long_filename, pattern)
 
         self.assertEqual(
@@ -142,6 +146,17 @@ class LogHandlerPropertyTest(BaseLogging):
         self.handler.output_dir = out
 
         self.check_properties(out)
+
+    def test_unusual_hostname(self):
+        node = self.enterContext(
+            mock.patch.object(
+                log_mgr.platform, 'node', spec_set=True, autospec=True
+            )
+        )
+        node.return_value = 'host-name-12.uncle.bob'
+        self.set_handler()
+
+        self.check_properties(str(pathlib.PurePath('default', 'path')))
 
 
 class LogHandlerTest(BaseLogging):
