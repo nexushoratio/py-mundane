@@ -5,11 +5,13 @@ name: Run tests
 on:
   workflow_dispatch:
 
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: noop
-        run: ":"
+      - name: Run `tox`
+        run: |
+          sudo apt update
+          sudo apt install tox yapf3 python3-isort pylint python3-humanize python3-psutil mypy python3-coverage
+          tox
