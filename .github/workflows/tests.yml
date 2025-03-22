@@ -12,4 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run `tox`
-        run: tox
+        run: |
+          sudo apt update
+          sudo apt install tox
+          tox
