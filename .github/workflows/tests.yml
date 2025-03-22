@@ -4,11 +4,6 @@ name: Run tests
 
 on:
   workflow_dispatch:
-    inputs:
-      packages:
-        description: 'Packages'
-        type: string
-
 
 jobs:
   test:
@@ -18,5 +13,5 @@ jobs:
       - name: Run `tox`
         run: |
           sudo apt update
-          sudo apt install tox yapf3 ${{ inputs.packages }}
+          sudo apt install tox yapf3 python3-isort pylint python3-humanize python3-psutil mypy python3-coverage
           tox
