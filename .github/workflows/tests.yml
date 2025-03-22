@@ -14,5 +14,5 @@ jobs:
       - name: Run `tox`
         run: |
           sudo apt update
-          sudo apt install tox
+          sudo apt install tox yapf3
           tox
