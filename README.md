@@ -1,5 +1,5 @@
 # mundane
-A small library for handling mundane things.
+A small Python library for handling mundane things.
 
 When I worked at Google, one of the things that I liked was that every application, no matter what language it was written in, acted the same way.  C++, Python, Java, even Bash.  In particular, I liked:
 * Flags defined at the module level
