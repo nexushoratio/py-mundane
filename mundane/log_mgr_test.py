@@ -536,7 +536,7 @@ class FlagsTest(BaseLogging):
 
             Global flags:
               -h, --help
-              -L {levels}, --log-level {levels}
+              -L, --log-level {levels}
                                     Minimal log level (Default:
                                     WARNING)
               --log-dir LOG_DIR     Logging directory (Default:
@@ -570,7 +570,7 @@ class FlagsTest(BaseLogging):
 
             Global flags:
               -h, --help
-              -L {levels}, --log-level {levels}
+              -L, --log-level {levels}
                                     Minimal log level (Default:
                                     WARNING)
               --log-dir LOG_DIR     Logging directory (Default:

@@ -431,7 +431,7 @@ class ArgparseAppParsingWithLogMgrTest(BaseApp):
 
             Global flags:
               -h, --help
-              -L {log_levels}, --log-level {log_levels}
+              -L, --log-level {log_levels}
                                     Minimal log level (Default: WARNING)
               --log-dir LOG_DIR     Logging directory (Default:
                                     {log_dir})
@@ -626,16 +626,16 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
             Commands:
               For more details: test_dash_h_commands <command> --help
 
-              <command>            <command description>
+              <command>             <command description>
                 generate-report
                 put-on-hat
-                remove-shoes       Shoes have custom help.
+                remove-shoes        Shoes have custom help.
                 ingest-new-material
-                                   Take in new material.
-                process            Process random data.
-                dance              Like no one is watching.
-                sub                A subcommand for wrapping other
-                                   subcommands.
+                                    Take in new material.
+                process             Process random data.
+                dance               Like no one is watching.
+                sub                 A subcommand for wrapping other
+                                    subcommands.
             """
         )
 
@@ -675,8 +675,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
             options:
               -h, --help            show this help message and exit
-              -x XYZZY, --xyzzy XYZZY
-                                    The xyzzy input.
+              -x, --xyzzy XYZZY     The xyzzy input.
               -k, --keep, --no-keep
                                     Keep intermediates.
             """
@@ -730,7 +729,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
 
             options:
               -h, --help            show this help message and exit
-              -f FILENAME, --filename FILENAME
+              -f, --filename FILENAME
                                     Filename to ingest.
             """
         )
@@ -845,15 +844,14 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
             A boat that can do interesting things.
 
             options:
-              -h, --help    show this help message and exit
+              -h, --help      show this help message and exit
 
             Commands:
               For more details: test_sub_marine_dash_h sub marine <command> --help
 
-              <command>     <command description>
-                change-depth
-                            Move to a new depth.
-                fire        Fire a weapon.
+              <command>       <command description>
+                change-depth  Move to a new depth.
+                fire          Fire a weapon.
             """
         )
         self.assertEqual(self.stdout.getvalue(), expected)
@@ -1013,21 +1011,21 @@ class ArgparseAppRunCommandTest(BaseApp):
 
             Global flags:
               -h, --help
-              --foo                Enable foo-ing.
+              --foo                 Enable foo-ing.
 
             Commands:
               For more details: test_no_command_with_defaults <command> --help
 
-              <command>            <command description>
+              <command>             <command description>
                 generate-report
                 put-on-hat
-                remove-shoes       Shoes have custom help.
+                remove-shoes        Shoes have custom help.
                 ingest-new-material
-                                   Take in new material.
-                process            Process random data.
-                dance              Like no one is watching.
-                sub                A subcommand for wrapping other
-                                   subcommands.
+                                    Take in new material.
+                process             Process random data.
+                dance               Like no one is watching.
+                sub                 A subcommand for wrapping other
+                                    subcommands.
             """
         )
         self.assertEqual(self.stdout.getvalue(), expected)
@@ -1071,21 +1069,21 @@ class ArgparseAppRunCommandTest(BaseApp):
 
             Global flags:
               -h, --help
-              --foo                Enable foo-ing.
+              --foo                 Enable foo-ing.
 
             Commands:
               For more details: test_fallback_with_dash_h <command> --help
 
-              <command>            <command description>
+              <command>             <command description>
                 generate-report
                 put-on-hat
-                remove-shoes       Shoes have custom help.
+                remove-shoes        Shoes have custom help.
                 ingest-new-material
-                                   Take in new material.
-                process            Process random data.
-                dance              Like no one is watching.
-                sub                A subcommand for wrapping other
-                                   subcommands.
+                                    Take in new material.
+                process             Process random data.
+                dance               Like no one is watching.
+                sub                 A subcommand for wrapping other
+                                    subcommands.
             """
         )
         self.assertEqual(self.stdout.getvalue(), expected)
@@ -1100,13 +1098,13 @@ class ArgparseAppRunCommandTest(BaseApp):
             sys.exit(self.my_app.run([bogus]))
 
         cmd = '<command>'
-        choices = "', '".join(
+        choices = ", ".join(
             (
                 'generate-report', 'put-on-hat', 'remove-shoes',
                 'ingest-new-material', 'process', 'dance', 'sub'
             )
         )
-        choose = f"(choose from '{choices}')"
+        choose = f"(choose from {choices})"
         expected = munge_expected(
             f"""
             usage: {self.mee} [-h] [--foo]
@@ -1133,13 +1131,13 @@ class ArgparseAppRunCommandTest(BaseApp):
             sys.exit(self.my_app.run(['bogosity']))
 
         cmd = '<command>'
-        choices = "', '".join(
+        choices = ", ".join(
             (
                 'generate-report', 'put-on-hat', 'remove-shoes',
                 'ingest-new-material', 'process', 'dance', 'sub'
             )
         )
-        choose = f"(choose from '{choices}')"
+        choose = f"(choose from {choices})"
         expected = munge_expected(
             f"""
             usage: {self.mee} [-h] [--foo]
