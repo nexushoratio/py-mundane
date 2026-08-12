@@ -12,9 +12,9 @@ authors = [
   {name = 'Mike Castle', email = 'dalgoda@gmail.com'},
 ]
 dependencies = [
-  'humanize>=4.4.0',
-  'platformdirs',
-  'psutil>=2.0.0',
+  'humanize>=4.9.0',
+  'platformdirs>=4.2',
+  'psutil>=5',
 ]
 dynamic = ['version']
 
@@ -87,6 +87,7 @@ isolated_build = True
 passenv = PYTHON*
 sitepackages = True
 commands =
+    python -V
     python -m yapf -i -r mundane
     python -m isort mundane
     python -m pylint mundane
