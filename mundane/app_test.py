@@ -630,7 +630,29 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['-h'])
 
-        expected = munge_expected(
+        exp_3_12_6 = munge_expected(
+            """
+            usage: test_dash_h_commands [-h] <command> ...
+
+            Global flags:
+              -h, --help
+
+            Commands:
+              For more details: test_dash_h_commands <command> --help
+
+              <command>            <command description>
+                generate-report
+                put-on-hat
+                remove-shoes       Shoes have custom help.
+                ingest-new-material
+                                   Take in new material.
+                process            Process random data.
+                dance              Like no one is watching.
+                sub                A subcommand for wrapping other
+                                   subcommands.
+            """
+        )
+        exp_3_12_7 = munge_expected(
             """
             usage: test_dash_h_commands [-h] <command> ...
 
@@ -652,8 +674,8 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                                     subcommands.
             """
         )
-
-        self.assertEqual(self.stdout.getvalue(), expected)
+        expected = exp_3_12_6 if sys.version_info < (3, 12, 7) else exp_3_12_7
+        self.assertEqual(self.stdout.getvalue(), expected, msg=sys.version)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
 
@@ -884,7 +906,25 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['sub', 'marine', '-h'])
 
-        expected = munge_expected(
+        exp_3_12_6 = munge_expected(
+            """
+            usage: test_sub_marine_dash_h sub marine [-h] <command> ...
+
+            A boat that can do interesting things.
+
+            options:
+              -h, --help    show this help message and exit
+
+            Commands:
+              For more details: test_sub_marine_dash_h sub marine <command> --help
+
+              <command>     <command description>
+                change-depth
+                            Move to a new depth.
+                fire        Fire a weapon.
+            """
+        )
+        exp_3_12_7 = munge_expected(
             """
             usage: test_sub_marine_dash_h sub marine [-h] <command> ...
 
@@ -901,6 +941,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                 fire          Fire a weapon.
             """
         )
+        expected = exp_3_12_6 if sys.version_info < (3, 12, 7) else exp_3_12_7
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -1051,7 +1092,31 @@ class ArgparseAppRunCommandTest(BaseApp):
                 self.stdout), contextlib.redirect_stderr(self.stderr):
             retcode = self.my_app.run([])
 
-        expected = munge_expected(
+        exp_3_12_6 = munge_expected(
+            """
+            usage: test_no_command_with_defaults [-h] [--foo]
+                                                 <command> ...
+
+            Global flags:
+              -h, --help
+              --foo                Enable foo-ing.
+
+            Commands:
+              For more details: test_no_command_with_defaults <command> --help
+
+              <command>            <command description>
+                generate-report
+                put-on-hat
+                remove-shoes       Shoes have custom help.
+                ingest-new-material
+                                   Take in new material.
+                process            Process random data.
+                dance              Like no one is watching.
+                sub                A subcommand for wrapping other
+                                   subcommands.
+            """
+        )
+        exp_3_12_7 = munge_expected(
             """
             usage: test_no_command_with_defaults [-h] [--foo]
                                                  <command> ...
@@ -1075,7 +1140,8 @@ class ArgparseAppRunCommandTest(BaseApp):
                                     subcommands.
             """
         )
-        self.assertEqual(self.stdout.getvalue(), expected)
+        expected = exp_3_12_6 if sys.version_info < (3, 12, 7) else exp_3_12_7
+        self.assertEqual(self.stdout.getvalue(), expected, msg=sys.version)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(retcode, os.EX_USAGE)
 
@@ -1110,7 +1176,30 @@ class ArgparseAppRunCommandTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.run(['-h'])
 
-        expected = munge_expected(
+        exp_3_12_6 = munge_expected(
+            """
+            usage: test_fallback_with_dash_h [-h] [--foo] <command> ...
+
+            Global flags:
+              -h, --help
+              --foo                Enable foo-ing.
+
+            Commands:
+              For more details: test_fallback_with_dash_h <command> --help
+
+              <command>            <command description>
+                generate-report
+                put-on-hat
+                remove-shoes       Shoes have custom help.
+                ingest-new-material
+                                   Take in new material.
+                process            Process random data.
+                dance              Like no one is watching.
+                sub                A subcommand for wrapping other
+                                   subcommands.
+            """
+        )
+        exp_3_12_7 = munge_expected(
             """
             usage: test_fallback_with_dash_h [-h] [--foo] <command> ...
 
@@ -1133,6 +1222,7 @@ class ArgparseAppRunCommandTest(BaseApp):
                                     subcommands.
             """
         )
+        expected = exp_3_12_6 if sys.version_info < (3, 12, 7) else exp_3_12_7
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -1144,14 +1234,15 @@ class ArgparseAppRunCommandTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run([bogus]))
 
+        sq = "'" if sys.version_info < (3, 12, 8) else ''
         cmd = '<command>'
-        choices = ", ".join(
+        choices = f'{sq}, {sq}'.join(
             (
                 'generate-report', 'put-on-hat', 'remove-shoes',
                 'ingest-new-material', 'process', 'dance', 'sub'
             )
         )
-        choose = f"(choose from {choices})"
+        choose = f"(choose from {sq}{choices}{sq})"
         expected = munge_expected(
             f"""
             usage: {self.mee} [-h] [--foo]
@@ -1177,14 +1268,15 @@ class ArgparseAppRunCommandTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             sys.exit(self.my_app.run(['bogosity']))
 
+        sq = "'" if sys.version_info < (3, 12, 8) else ''
         cmd = '<command>'
-        choices = ", ".join(
+        choices = f'{sq}, {sq}'.join(
             (
                 'generate-report', 'put-on-hat', 'remove-shoes',
                 'ingest-new-material', 'process', 'dance', 'sub'
             )
         )
-        choose = f"(choose from {choices})"
+        choose = f"(choose from {sq}{choices}{sq})"
         expected = munge_expected(
             f"""
             usage: {self.mee} [-h] [--foo]
