@@ -424,7 +424,20 @@ class ArgparseAppParsingWithLogMgrTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             my_app.parser.parse_args(['-h'])
 
-        expected = munge_expected(
+        exp_3_12 = munge_expected(
+            f"""
+            usage: test_dash_h [-h] [-L {log_levels}]
+                               [--log-dir LOG_DIR]
+
+            Global flags:
+              -h, --help
+              -L {log_levels}, --log-level {log_levels}
+                                    Minimal log level (Default: WARNING)
+              --log-dir LOG_DIR     Logging directory (Default:
+                                    {log_dir})
+            """
+        )
+        exp_3_13 = munge_expected(
             f"""
             usage: test_dash_h [-h] [-L {log_levels}]
                                [--log-dir LOG_DIR]
@@ -437,6 +450,7 @@ class ArgparseAppParsingWithLogMgrTest(BaseApp):
                                     {log_dir})
             """
         )
+        expected = exp_3_12 if sys.version_info < (3, 13) else exp_3_13
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -668,7 +682,20 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['put-on-hat', '-h'])
 
-        expected = munge_expected(
+        exp_3_12 = munge_expected(
+            """
+            usage: test_put_on_hat_dash_h put-on-hat [-h] -x XYZZY
+                                                     [-k | --keep | --no-keep]
+
+            options:
+              -h, --help            show this help message and exit
+              -x XYZZY, --xyzzy XYZZY
+                                    The xyzzy input.
+              -k, --keep, --no-keep
+                                    Keep intermediates.
+            """
+        )
+        exp_3_13 = munge_expected(
             """
             usage: test_put_on_hat_dash_h put-on-hat [-h] -x XYZZY
                                                      [-k | --keep | --no-keep]
@@ -680,7 +707,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                                     Keep intermediates.
             """
         )
-
+        expected = exp_3_12 if sys.version_info < (3, 13) else exp_3_13
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)
@@ -714,7 +741,26 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                     self.stdout), contextlib.redirect_stderr(self.stderr):
             self.my_app.parser.parse_args(['ingest-new-material', '-h'])
 
-        expected = munge_expected(
+        exp_3_12 = munge_expected(
+            """
+            usage: test_ingest_dash_h ingest-new-material
+                   [-h] -f FILENAME
+
+            Take in new material.
+
+            Read the material and do something useful with it.
+
+            This is a second paragraph that has more details on what is
+            going on in this command.  Including long sentences that
+            wrap.
+
+            options:
+              -h, --help            show this help message and exit
+              -f FILENAME, --filename FILENAME
+                                    Filename to ingest.
+            """
+        )
+        exp_3_13 = munge_expected(
             """
             usage: test_ingest_dash_h ingest-new-material
                    [-h] -f FILENAME
@@ -733,6 +779,7 @@ class ArgparseAppRegisterCommandsTest(BaseApp):
                                     Filename to ingest.
             """
         )
+        expected = exp_3_12 if sys.version_info < (3, 13) else exp_3_13
         self.assertEqual(self.stdout.getvalue(), expected)
         self.assertEqual(self.stderr.getvalue(), '')
         self.assertEqual(result.exception.code, 0)

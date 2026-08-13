@@ -87,7 +87,6 @@ isolated_build = True
 passenv = PYTHON*
 sitepackages = True
 commands =
-    python -V
     python -m yapf -i -r mundane
     python -m isort mundane
     python -m pylint mundane

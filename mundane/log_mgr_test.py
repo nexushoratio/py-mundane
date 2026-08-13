@@ -528,7 +528,22 @@ class FlagsTest(BaseLogging):
             my_app.parser.parse_args(['--help'])
 
         levels = '{DEBUG,INFO,WARNING,ERROR,CRITICAL}'
-        expected = munge_expected(
+        exp_3_12 = munge_expected(
+            f"""
+            usage: test_default_dash_h [-h]
+                                       [-L {levels}]
+                                       [--log-dir LOG_DIR]
+
+            Global flags:
+              -h, --help
+              -L {levels}, --log-level {levels}
+                                    Minimal log level (Default:
+                                    WARNING)
+              --log-dir LOG_DIR     Logging directory (Default:
+                                    well/known/path)
+            """
+        )
+        exp_3_13 = munge_expected(
             f"""
             usage: test_default_dash_h [-h]
                                        [-L {levels}]
@@ -543,6 +558,7 @@ class FlagsTest(BaseLogging):
                                     well/known/path)
             """
         )
+        expected = exp_3_12 if sys.version_info < (3, 13) else exp_3_13
         self.assertEqual(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
@@ -562,7 +578,22 @@ class FlagsTest(BaseLogging):
             my_app.parser.parse_args(['--help'])
 
         levels = '{DEBUG,INFO,Custom,WARNING,ERROR,CRITICAL}'
-        expected = munge_expected(
+        exp_3_12 = munge_expected(
+            f"""
+            usage: test_custom_logging_level_dash_h [-h]
+                                                    [-L {levels}]
+                                                    [--log-dir LOG_DIR]
+
+            Global flags:
+              -h, --help
+              -L {levels}, --log-level {levels}
+                                    Minimal log level (Default:
+                                    WARNING)
+              --log-dir LOG_DIR     Logging directory (Default:
+                                    well/known/path)
+            """
+        )
+        exp_3_13 = munge_expected(
             f"""
             usage: test_custom_logging_level_dash_h [-h]
                                                     [-L {levels}]
@@ -577,6 +608,7 @@ class FlagsTest(BaseLogging):
                                     well/known/path)
             """
         )
+        expected = exp_3_12 if sys.version_info < (3, 13) else exp_3_13
         self.assertEqual(stdout.getvalue(), expected)
         self.assertEqual(result.exception.code, 0)
 
